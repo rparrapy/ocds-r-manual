@@ -27,10 +27,21 @@ Source: CRAN
 Version: 1.1-2
 Hash: c0d56cd15034f395874c870141870c25
 
+Package: RPostgreSQL
+Source: CRAN
+Version: 0.6-2
+Hash: 3f9effd1b6b265ca9287546537bf5d96
+Requires: DBI
+
 Package: Rcpp
 Source: CRAN
 Version: 0.12.18
 Hash: c80398774358bc105b9f91f7f7519d7a
+
+Package: XML
+Source: CRAN
+Version: 3.98-1.12
+Hash: 492cbdb2bce62ac726ede3b75f3fefbc
 
 Package: assertthat
 Source: CRAN
@@ -415,6 +426,11 @@ Source: CRAN
 Version: 0.4-1
 Hash: b12802c11e35dec9d16a74d30ed0f3ed
 Requires: R6, stringr
+
+Package: sets
+Source: CRAN
+Version: 1.0-18
+Hash: ca27ad222520ebb3f4c836b738f1b846
 
 Package: shiny
 Source: CRAN

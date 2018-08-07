@@ -137,7 +137,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Parties (Organizations)
 
-```{json}
+```{json, eval=FALSE}
 {
     "address": {
         "countryName": "United Kingdom",
@@ -167,7 +167,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Amounts
 
-```{json}
+```{json, eval=FALSE}
 {
     "amount": 11000000,
     "currency": "GBP"
@@ -176,7 +176,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Items
 
-```{json}
+```{json, eval=FALSE}
 {
     "additionalClassifications": [
        {
@@ -207,7 +207,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Time Periods
 
-```{json}
+```{json, eval=FALSE}
 {
     "endDate": "2011-08-01T23:59:00Z",
     "startDate": "2010-07-01T00:00:00Z"
@@ -216,7 +216,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Documents
 
-```{json}
+```{json, eval=FALSE}
 {
     "datePublished": "2010-05-10T10:30:00Z",
     "description": "Award of contract to build new cycle lanes to AnyCorp Ltd.",
@@ -231,7 +231,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Milestones
 
-```{json}
+```{json, eval=FALSE}
 {
     "description": "A consultation period is open for citizen input.",
     "dueDate": "2015-04-15T17:00:00Z",
@@ -307,15 +307,15 @@ a_string_vector <- c("a1", "b2", "c3", "d4")
 a_boolean_vector <- c(TRUE, FALSE)
 
 # lists can have elements of different types, associated to a key
-a_list = list(name="John", last_name="Deer", age=42, married=FALSE)
+a_list <- list(name = "John", last_name = "Deer", age = 42, married = FALSE)
 
-# there are several ways to access an element from a collectionß
+# there are several ways to access an element from a collection<U+00DF>
 a_number_vector[0]
 a_string_vector[[1]]
 a_list$name
 
 # a matrix is a special kind of vector, with the number of rows and columns as attributes
-m <- matrix(c(1,2,3,4), nrow=2, ncol=2)
+m <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)
 m
 ```
 
@@ -324,18 +324,18 @@ m
 Data types to store data tables are core to R's purpose and functionality, hence they deserve their own subsection. The most common data table type in R are data frames, which can be though of as list of vectors of equal length.
 
 ```{r}
-name <- c("Mike", "Lucy", "John") 
-age <- c(20, 25, 30) 
-student <- c(TRUE, FALSE, TRUE) 
-df = data.frame(name, age, student)  
+name <- c("Mike", "Lucy", "John")
+age <- c(20, 25, 30)
+student <- c(TRUE, FALSE, TRUE)
+df <- data.frame(name, age, student)
 df
 ```
 
 The access operators presented for other data types can also be used to get data cells from a data frame.
 
 ```{r}
-df[1,] # R has 1-based indexing, i.e. collections start at 1.
-df[1,]$name # Values from a row can be accessed by column name
+df[1, ] # R has 1-based indexing, i.e. collections start at 1.
+df[1, ]$name # Values from a row can be accessed by column name
 df$name # Columns can also be accessed directly from the data frame.
 ```
 
@@ -369,7 +369,7 @@ summary(tb)
 Reading data that is already tabular is also very simple, as shown in the example below which reads a CSV file as a data frame. The file corresponds to the iris dataset, a very popular toy dataset for data science available [online](https://archive.ics.uci.edu/ml/datasets/iris).
 
 ```{r}
-iris <- as_tibble(read.table("iris.csv", header=TRUE, sep=","))
+iris <- as_tibble(read.table("iris.csv", header = TRUE, sep = ","))
 iris
 ```
 
@@ -427,34 +427,472 @@ git clone my-awesome-repo.com
 2. Opening it with RStudio by using the menu bar option **File -> Open Project...**
 
 
-
 # Data acquisition
 
-## Handling JSON files with R
-## Handling big data using JSON streams
+This section is focused on data loading from diverse sources, which is the first step for any analysis process. We will read the data from the four countries this document is concerned with, using them as examples for different data acquisition methods:
+
+* Data from Uruguay will be read using their public web API.
+* Data from Paraguay and Mexico will be loaded from local JSON files.
+* Data from Colombia will be loaded from JSONB columns of a Postgres database. Since this is the largest dataset we have access to, we will use it as an example of how to handle big data with R using JSON streams.
+
+## From a REST API
+
+The open contracting dataset from Uruguay is available via a RSS endpoint, which includes URLs to the latest releases. It is worth noting that since only latest releases are accessible, not much in depth analysis can be done using this dataset. Having said that, it is still a perfectly suitable example to showcase R's HTTP fetching capabilities; we start by fetching the RSS feed and creating a data frame where each row corresponds to a release.
+
+```{r}
+library(XML)
+
+xml_url <- "http://www.comprasestatales.gub.uy/ocds/rss"
+xml_file <- xmlParse(xml_url)
+xml_top <- xmlRoot(xml_file)[[1]]
+
+index_tb <- as_tibble(xmlToDataFrame(xmlElementsByTagName(xml_top, "item")))
+index_tb
+```
+
+We then proceed to fetch the JSON content corresponding to each release, using the values of the **link** column defined above. There are many libraries to handle JSON with R, each with its list of pros and cons; because of its focus in performance and web api consumption, we use (jsonlite)[https://cran.r-project.org/web/packages/jsonlite/index.html] in this guide.
+
+```{r message=FALSE, warning=FALSE}
+library(jsonlite)
+```
+
+```{r, cache=TRUE}
+
+# we run fromJSON (which fetches the url) for every row of the data frame
+releases <- apply(index_tb["link"], 1, function(r) {
+  return(as_tibble(fromJSON(r, flatten = TRUE)[["releases"]]))
+})
+releases[[1]]
+```
+
+The code snippet above got us a list of tibbles, each tibble representing a release. As our next step, we can merge all those tibbles, filling missing values (for example, according to the stage they correspond to, some releases include tender information while some do not) with NA (R's constant for 'Not Available').
+
+```{r, cache=TRUE}
+releases_tb <- bind_rows(releases)
+```
+
+Because data from Uruguay includes only the latest 500 releases, actual compilation of records is not possible (as not enough data is available). Therefore, this is as far as we will go with their open contracting data.
 
 
-## Data loading
-### From a REST API
-### From JSON files
-### From a Postgres database with JSONB columns
+## From JSON files
+
+We can also read records or releases from a set of JSON files, published by one or more official publishers associated to a country. That is the case of Paraguay, the next country we will be adding to our analysis. Paraguayan open contracting data are published by the National Directorate of Public Tender (*Dirección Nacional de Contrataciones Públicas*, DNCP) and the Ministry of Finance (*Ministerio de Hacienda*); as they share ocids, we should be able to use their published data together.
+
+Let's start with DNCP data, which is stored under *data/records_dncp*:
+```{r, warning=FALSE, message=FALSE}
+library(glue)
+library(jsonlite)
+library(parallel)
+
+# Calculate the number of cores
+no_cores <- detectCores() - 1
+# Initiate cluster
+cl <- makeCluster(no_cores)
+clusterExport(cl, c("fromJSON", "paste", "as_tibble"))
+```
+
+```{r, cache=TRUE}
+files <- list.files("data/records_dncp/", "*.json")
+# fromJSON(paste('data/records_dncp/', [1], sep = ""), flatten = TRUE)
+records <- parLapply(cl, files, function(r) {
+  file <- paste("data/records_dncp/", r, sep = "")
+  return(as_tibble(fromJSON(file, flatten = TRUE)[["records"]]))
+})
+records[[1]]
+```
+
+```{r, cache=TRUE}
+dncp_records_tb <- bind_rows(records)
+remove(records)
+dncp_records_tb
+```
+
+Data from the Ministry of Finance can be read likewise:
+
+```{r, cache=TRUE}
+files <- list.files("data/releases_mh/", "*.json")
+# fromJSON(paste('data/records_dncp/', files[1], sep = ""), flatten = TRUE)
+records <- parLapply(cl, files, function(r) {
+  file <- paste("data/releases_mh/", r, sep = "")
+  return(as_tibble(fromJSON(file, flatten = TRUE)[["releases"]]))
+})
+
+mh_releases_tb <- bind_rows(records)
+remove(records)
+mh_releases_tb
+```
+
+ ## From a Postgres database with JSONB columns
+
+For Mexico and Colombia we process data as a stream, i.e. one record at a time. Data frames and tibbles are stored in memory by R, while stream processing only requires one record to be stored in memory. For this reason, this data processing paradigm is particularly useful when dealing with big data.
+
+The library we are using (jsonlite) includes the *stream_in* function to support (ndjson)[http://ndjson.org] a convenient format to store multiple JSON records in a single file. Since our records are stored in a Postgres database, we have to write a similar feature ourselves. Let's write a function to do precisely that in the next code snippets:
+
+```{r}
+library(RPostgreSQL)
+
+db_engine <- "PostgreSQL"
+host <- "localhost"
+user <- "postgres" # if you are concerned about security
+password <- "" # you should probably change this 2 lines
+port <- 5433
+query <- "SELECT id, data FROM data"
+
+drv <- dbDriver(db_engine)
+con_colombia <- dbConnect(drv, host = host, port = port, dbname = "ocds_colombia", user = user, password = password)
+
+con_mexico <- dbConnect(drv, host = host, port = port, dbname = "ocds_mexico", user = user, password = password)
+```
+
+
+```{r}
+stream_in_db <- function(con, query, page_size = 10000) {
+  current_id <- 0
+  acc <- 0
+
+  return(function(handler) {
+    repeat{
+      paged_query <- paste(query, "WHERE id > ", current_id, "ORDER BY id ASC LIMIT", page_size)
+      data <- dbGetQuery(con, paged_query)
+
+      if (dim(data)[1] == 0) {
+        break
+      }
+      
+      acc <- handler(data[['data']], acc)
+      current_id <- tail(data[['id']], n=1)
+      # print(current_id)
+    }
+  })
+  return(acc)
+}
+
+stream_in_colombia <- stream_in_db(con_colombia, query)
+
+stream_in_mexico <- stream_in_db(con_mexico, query)
+```
+
+Let's recap on what we just did:
+
+1. First, we defined a function *stream_in_db* that receives database connection parameters and a query, and runs the query against the specified database.
+1. *stream_in_db* returns a function, which applies a handler received as a parameter to every page of the result set.
+1. Finally, we used *stream_in_db* to get functions pointing at the databases of Mexico and Colombia.
+
+Now let's take our streaming functions for a ride. To test them out, we can define a dummy handler to count the number of rows of data that result from our query.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, eval=FALSE}
+sanity_checker <- function(data, acc) {
+  m <- parLapply(cl, data, function(e) {
+    t <- fromJSON(e, flatten = TRUE)
+    return(1)
+  })
+  
+  return(acc + Reduce("+", m))
+}
+
+result <- stream_in_colombia(sanity_checker)
+stopCluster(cl)
+length(result)
+```
+
+
 
 
 # Analysis of contracting data
 
-## Introducing the Tidiverse
+This section introduces a bunch of useful tools to perform basic data analysis using R, accompanied by some basic examples to showcase their features. It ends with the calculation of a few OCDS indicators using the datasets obtained in the previous section.
+
+## Introducing the Tidyverse
+The Tidyverse is a collection of R packages aimed at data science tasks; besides the libraries, it shares a common set of data structures, a style guide, and an underlying philosophy for data analysis.
+The core Tidyverse (packages)[https://www.tidyverse.org/packages/] are:
+
+* gglplot2: a system for declaratively creating graphics, based on The Grammar of Graphics, a tool that enables the user to concisely describe most of the graphical mappings used in data visualization. You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
+* dplyr: an implementation of a grammar of data manipulation, providing a consistent set of verbs that solve the most common data manipulation challenges
+* tidyr: provides a set of functions that help you get to tidy data. Tidy data is data with a consistent form: in brief, every variable goes in a column, and every column is a variable.
+* readr: provides a fast and friendly way to read rectangular data (like csv, tsv, and fwf).
+* purrr: enhances R’s functional programming (FP) toolkit by providing a complete and consistent set of tools for working with functions and vectors.
+* tibble: a modern reimplementation of R's star data structure: the data frame. At this point, the user should be fairly familiar with tibbles.
+* stringr: provides a cohesive set of functions designed to make working with strings as easy as possible.
+* forcats: provides a suite of useful tools that solve common problems with factors, which are used by R to handle categorical variables.
+
+For the purposes of this guide, the first three packages above are the most important ones. Hence, tidyr and dplyr will be covered in the remainder of this section and ggplot2 will be described in the next one.
+
 ## Data cleaning functions
+
+According to the Tidyverse philosophy, data cleaning is the process of making data tidy. Data being tidy means:
+
+* Each variable must have its own column.
+* Each observation must have its own row.
+* Each value must have its own cell.
+
+Every package from the Tidyverse is designed to work with tidy data; when dealing with an untidy dataset, the first step of our analysis must therefore be using **tidyr** to clean it up. There are three main verbs provided by this package to help making data tidy: gather, spread and separate.
+
+### Gathering
+
+A frequent issue with untidy data is a dataset where some column names are not variable *names* but variable *values*. For example, consider the code snippet below:
+
+```{r}
+world_population = tibble(
+  country = c("Paraguay", "Uruguay", "Colombia", "Mexico"),
+  "2017" = c(7000000, 3000000, 45000000, 127000000),
+  "2018" = c(7200000, 3200000, 46000000, 128000000),
+)
+world_population
+```
+
+In the example above, the data is untidy because *2017* and *2018* are values of the implicit *year* variable. This means each row corresponds to two observations, not one. We can fix this problem by applying the *gather* function as follows:
+
+```{r}
+world_population %>% gather(`2017`, `2018`, key = "year", value = "inhabitants")
+```
+
+Much better! In the final result, the problematic columns are dropped and our dataset is now 100% tidy.
+
+### Spreading
+
+Gathering is useful when one row corresponds to more than one observation. Spreading works in the opposite scenario, when a single observation is scattered accross multiple rows. Consider a simple extension of our example dataset: 
+
+```{r}
+world_count = tibble(
+  country = c("Paraguay", "Uruguay", "Colombia", "Mexico", "Paraguay", "Uruguay", "Colombia", "Mexico"),
+  year = 2018,
+  type = c("inhabitants", "inhabitants", "inhabitants", "inhabitants", "cars", "cars", "cars", "cars"),
+  count = c(7000000, 3000000, 45000000, 127000000, 1000000, 500000, 10000000, 75000000)
+)
+world_count
+```
+
+In this case we have variables stored as cell values, which is the case of *inhabitants* and *cars*. How do we fix it? Just watch the **spread** function do its magic below:
+
+```{r}
+world_count %>% spread(key = type, value = count)
+```
+
+### Separating
+
+Our final tidyr function, **separate**, allows us to solve cases in which multiple variable values are stored in the same cell. As an example, consider the result of parsing the Uruguayan RSS feed that we downloaded in a previous section.
+
+```{r}
+index_tb
+```
+
+It is clear that the title column contains values for two variables: *id_compra* and *release_id*, which are separated by a comma. Let's use **separate** to make things tidy:
+
+```{r}
+index_tb %>% 
+  separate(title, into = c("id_compra", "release_id"), sep = ",") %>%
+  transform(id_compra=str_replace(id_compra,"id_compra:","")) %>%  # don't worry too much about
+  transform(release_id=str_replace(release_id,"release_id:",""))   # these two lines
+  # the last 2 lines just remove the needless prefixes
+```
+
+The last two lines of the code snippet above are just a sneak peak of one of the features of the package we will cover next: dplyr. 
+
 ## Data analysis functions
+
+Once we have tidied up our data with **tidyr**, the next steps of data analysis usually involve data manipulation in one way or the other. Selecting specific columns and rows based on a condition, adding composite columns, summarizing data, etc. can be cited among the operations that are frequently performed as a part of the analytical process. The Tidyverse includes **dplyr** as the go-to tool for this kind of data manipulation, we will now cover some of its basic functions.
+
+### Mutating
+
+The **mutate** function allows the user to add a new column to a tibble based on the values of one (or more) already existing columns. Let's use the dataset of releases from Uruguay to illustrate a case where this function might come in handy:
+
+```{r}
+releases_tb
+```
+
+Let's suppose we need a column with the *name* of the month when a release was made. This value is not readily available in the dataset, but the information is contained in the *date* column and can be extracted with some help from **mutate**:
+
+```{r}
+library(lubridate) # if you ever have to work with dates, do yourself a favor and use this
+
+uruguay_releases_with_month = releases_tb %>% mutate(month = month.name[month(date)])
+## month.name is a vector with the name of each month
+uruguay_releases_with_month[c('ocid', 'month')]
+```
+
+### Selecting
+
+In our code snippet above we selected certain columns of our tibble using array-indexing notation. **dplyr** provides a function to do the same thing, **select**:
+
+```{r}
+select(uruguay_releases_with_month, ocid, month)
+```
+
+### Filtering
+
+A very common operation when dealing with data is to select a subset of rows that are of interest for our analysis. For example, let's assume we are only interested in releases that are related to awards. We can identify the stage of the contracting process to which a release is related through the *column*.
+
+```{r}
+releases_tb[1,]$tag
+```
+
+Knowing this, it is easy to get the collection of releases that correspond to awards by using **filter** as shown below:
+
+```{r}
+awards_tb = releases_tb %>% filter(tag == 'award')
+awards_tb
+```
+
+```{r}
+awards_tb[10, ]$tag
+```
+
+### Summarizing
+
+Summarization allows us to aggregate variables based on a preset grouping. To illustrate this we can revisit our example using the Iris dataset:
+
+```{r}
+
+iris %>%
+  group_by(Name) %>%
+  summarize_if(is.numeric, mean)
+```
+
+In the snippet above, we start by grouping the dataset by species name and then summarize every numeric column using the mean as the aggregator function.
+
 ## Computing basic OCDS indicators
+
+
 
 
 # Data visualization
 
+Data visualization can be defined as the visual mapping of data using visual cues such as size, shape and color to represent the variation of the values of the variables in a dataset.  It is a good way to communicate complex information, since it is much easier to spot patterns and make comparisons than with raw data. 
+
+This section introduces the reader to some basic concepts of data visualization, providing a few guidelines on how to choose an appropriate visual representation of a dataset. Although it is definitely helpful to acquire such theoretical background, the good news for the reader are that R gently guides you towards the right choice (if you let it). The last statement will become clearer once we cover **ggplot2**, R's main data visualization library and a very important component of the Tidyverse.
+
+
+Finally, we will test what we just learned by plotting OCDS data using **ggplot2**.
 
 ##  A data visualization primer
+
+Whenever we visualize data, we are encoding variables using visual attributes such as size, shape or color. Consider for example a quantitative variable, differences among values associated to each observation can be represented in several ways, as displayed below:
+
+```{r, echo=FALSE, fig.cap="Potential attribute mapping for a quantitative variable."}
+knitr::include_graphics("visual_cues.jpg")
+```
+
+As the reader might have noticed, many mappings are possible, but not all of them seem equally appropriate. In fact, statisticians William Cleveland and Robert McGill explored this intuition further by running some experiments with human volunteers to determine which visual attributes encoded quantitative information more accurately. Their findings are summarized in the figure below:
+
+```{r, echo=FALSE, fig.cap="Potential attribute mapping for a quantitative variable."}
+knitr::include_graphics("ordered_visual_cues.jpg")
+```
+
+While this preference order is a good guideline for quantitative variables, other types of data map differently to visual attributes. For example, while color hue is a poor choice to encode a quantitative variable, it works well to encode a categorical one. 
+
+Different combinations of encoding choices render different types of plots. In this manual we will use four type of plots, which will be introduced as we use them to describe OCDS data in a later subsection: bar charts, line charts, box plots and histograms. There are several other types of charts, and additional considerations that can be taken when visualizing data; for a more in depth tour of these topics we recommend the great visualization course by Peter Aldhous, which is available (online)[http://paldhous.github.io/ucb/2016/dataviz/week2.html] (figures from this section were taking from the course site). 
+
 ##  An introduction to ggplot2
+
+**ggplot2** is the Tidyverse package for data visualization. It is based on the *grammar of graphics*, a formal grammar to declaratively describe most of the most common charts used when visualizing data.
+
+Graphs are described in ggplot by using a concise set of elements which can be combined according to a basic structure defined by the grammar of graphics. A simplified version of the grammar can be read below:
+
+```{r, eval=FALSE}
+ggplot(data = [DATA]) + 
+  [GEOM_FUNCTION](mapping = aes([MAPPINGS]))
+```
+
+You can consider the snippet above as a template for graphics. To make a plot, you simply fill in the elements within brackets with actual values:
+
+* [DATA] is pretty self-explanatory, it is the placeholder for the dataset that we want to plot.
+* [GEOM] should be replaced by any **geom** function provided by ggplot2. geoms are geometrical objects used to represent data such as points, lines, etc.
+* Finally [MAPPINGS] should be a collection of ggplot2 **aesthetics**, which are basically visual encoding specifications for the variables we want to visualize.
+
+Let's see this template in action by plotting our well-known Iris dataset as a scatter plot:
+
+
+```{r}
+ggplot(data = iris) + geom_point(mapping = aes(x = PetalLength, y = PetalWidth, color = Name))
+```
+
+As the reader might have noticed, **ggplot2** favor convention over configuration and any plot that we draw with it includes many good practices out of the box. For example, in the scatter plot above we got axis labelling and a legend for *free* just by specifying our set of aesthetic mappings. 
+
+There are several other components of the **ggplot2** grammar, but for this brief introduction our simplified template will do. To check which other elements are available, besides an exhaustive list of *geoms* and *aesthetics* please visit the (official website)[https://ggplot2.tidyverse.org] of the library.
+
+
 ##  Visualizing Open Contracting data
 
 
+### Paraguay
+
+```{r}
+contract_indices <- parApply(cl, dncp_records_tb, 1, function(r) {
+  contracts <- r['compiledRelease.contracts'][[1]]
+  return(!is.null(contracts) && !is.null(dim(contracts)))
+})
+```
+
+```{r}
+contracts <- parApply(cl, dncp_records_tb[contract_indices, ], 1, function(r) {
+  result <- r['compiledRelease.contracts'][[1]]
+  result['buyer.name'] <- r['compiledRelease.buyer.name']
+  return(result)
+})
+```
+
+```{r}
+contracts_dncp <- bind_rows(contracts)
+rm(contracts)
+```
+
+```{r}
+contracts <- parApply(cl, mh_releases_tb, 1, function(r) {
+  result <- r['contracts'][[1]]
+  result['buyer.name'] <- r['buyer.name']
+  result['procurement.method'] <- r['tender.procurementMethodDetails']
+  return(result)
+})
+```
+
+
+```{r}
+contracts_hacienda <- bind_rows(contracts)
+rm(contracts)
+```
+
+```{r}
+subset(contracts_dncp['dncpContractCode'], (dncpContractCode %in% contracts_hacienda['dncpContractCode']))
+```
+```{r}
+subset(contracts_hacienda['dncpContractCode'], (dncpContractCode %in% contracts_dncp['dncpContractCode']))
+```
+```{r}
+contracts_paraguay <- bind_rows(contracts_dncp, contracts_hacienda)
+head(contracts_paraguay)
+```
+
+```{r}
+contracts_dncp %>%
+  group_by(value.currency) %>%
+  summarise(count = n())
+```
+
+```{r}
+contracts_dncp %>%
+  mutate(signed_year = year(dateSigned)) %>%
+  filter(!is.na(signed_year), !is.na(value.amount), signed_year < 2019, value.currency == 'PYG') %>%
+  group_by(signed_year) %>%
+  summarise(count = n(), amount = sum(value.amount))
+```
+
+
+```{r}
+contracts_dncp %>%
+  mutate(signed_year = year(dateSigned)) %>%
+  filter(value.currency == 'PYG', signed_year == 2017) %>%
+  group_by(buyer.name) %>%
+  summarise(ccount = n()) %>%
+  arrange(desc(ccount))
+```
+
+```{r}
+contracts_dncp %>%
+  mutate(signed_year = year(dateSigned)) %>%
+  filter(value.currency == 'PYG', signed_year == 2017) %>%
+  group_by(buyer.name) %>%
+  summarise(amount = sum(value.amount)) %>%
+  arrange(desc(amount))
+```
 
 
