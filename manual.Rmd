@@ -37,7 +37,7 @@ caption {
 
 The goal of this manual is to provide the basic foundations needed to analyze and visualize Open Contracting data using the R programming language to people that might be interested in pursuing this challenging but worthy endeavor. A basic understanding of computer programming will come in handy when reading this document; however, enough guidance is provided to ensure that less-tech-savy readers can also follow along.
 
-As a part of this guide, we acquire, clean, analyze and plot Open Contracting data from 4 members of the partnership: Paraguay, Mexico, Uruguay and Colombia. This document was written using [R Notebooks](https://rmarkdown.rstudio.com/r_notebooks), a nifty feature which allows convenient integration of Markdown and R code, and exporting to HTML and PDF. The source code of this project is available [here](https://github.com).   
+As a part of this guide, we acquire, clean, analyze and plot Open Contracting data from 4 members of the partnership: Paraguay, Mexico, Uruguay and Colombia. This document was written using [R Notebooks](https://rmarkdown.rstudio.com/r_notebooks), a nifty feature which allows convenient integration of Markdown and R code, and exporting to HTML and PDF. The source code of this project is available [here](https://https://github.com/rparrapy/ocds-r-manual).   
 
 
 The rest of this document is organized as follows:
@@ -46,13 +46,13 @@ The rest of this document is organized as follows:
   
   * Section 2 deals with data acquisition and cleaning, focusing on reading and processing JSON files with R.
   
-  * Section 3 presents the [Tidiverse](https://www.tidyverse.org), a collection of R packages designed to perform common data science tasks. Additionally, we use several of these packages to compute basic indicators of our Open Contracting data.
+  * Section 3 presents the [Tidiverse](https://www.tidyverse.org), a collection of R packages designed to perform common data science tasks. 
   
   * Finally, section 4 introduces [ggplot2](https://ggplot2.tidyverse.org) and the grammar of graphics it is based on, to draw several plots that describe our previously acquired datasets.
 
 ## An introduction to the Open Contracting Data Standard
 
-By requiring data-sharing in a structured, re-usable and machine readable form, Open data opens up new opportunities for analysis and citizen engagement and participation. The [Open Contracting Data Standard](https://www.open-contracting.org/data-standard/) was created to apply these principles to data related to the complete contracting lifecycle including planning, tender, award, contract and implementation. 
+By requiring data-sharing in a structured, re-usable and machine readable form, Open data opens up new opportunities for analysis and citizen engagement and participation. The [Open Contracting Data Standard](https://www.open-contracting.org/data-standard/) was created to apply these principles to the complete contracting lifecycle including planning, tender, award, contract and implementation. 
 
 The data standard, designed and developed through an open process, allows governments and cities around the world to share their contracting data, enabling greater transparency in public contracting, and supporting accessible and in-depth analysis of the efficiency, effectiveness, fairness, and integrity of public contracting systems. Additionally, the help desk team, staffed by Open Data Services Co-operative, is available to assist prospective users in their journey towards adoption of the standard.
 
@@ -83,12 +83,17 @@ The standard defines a contracting process as:
 
 The standard covers all the stages of a contracting process, even though some processes might not involve all possible steps. The stages of the procurement process, with example objects that might be associated to each one, are depicted in the figure below.
 
+```{r include=FALSE}
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, 
+                      message = FALSE, cache.lazy = FALSE)
+```
+
 
 ```{r, echo=FALSE, fig.cap="Stages of the procurement process."}
 knitr::include_graphics("procurement-stages.png")
 ```
 
-For identification purposes, all contracting processes are assigned a unique Open Contracting ID (ocid), which can be used to join data from different stages. In order to avoid ocid clushers between publishers, a publisher can prepend a prefix to locally generated identifiers. Publishers are encouraged to register their prefix [here](http://standard.open-contracting.org/latest/en/implementation/registration/).
+For identification purposes, all contracting processes are assigned a unique Open Contracting ID (ocid), which can be used to join data from different stages. In order to avoid ocid clashes between publishers, a publisher can prepend a prefix to locally generated identifiers. Publishers are encouraged to register their prefix [here](http://standard.open-contracting.org/latest/en/implementation/registration/).
 
 
 
@@ -106,7 +111,7 @@ Contracting processes are represented as **documents** in the Open Contracting D
 
 An example JSON snippet compliant with this structure looks as follows:
 
-```{json}
+```json
 {
    "language": "en",
    "ocid": "contracting-process-identifier",
@@ -137,7 +142,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Parties (Organizations)
 
-```{json, eval=FALSE}
+```json
 {
     "address": {
         "countryName": "United Kingdom",
@@ -167,7 +172,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Amounts
 
-```{json, eval=FALSE}
+```json
 {
     "amount": 11000000,
     "currency": "GBP"
@@ -176,7 +181,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Items
 
-```{json, eval=FALSE}
+```json
 {
     "additionalClassifications": [
        {
@@ -207,7 +212,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Time Periods
 
-```{json, eval=FALSE}
+```json
 {
     "endDate": "2011-08-01T23:59:00Z",
     "startDate": "2010-07-01T00:00:00Z"
@@ -216,7 +221,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Documents
 
-```{json, eval=FALSE}
+```json
 {
     "datePublished": "2010-05-10T10:30:00Z",
     "description": "Award of contract to build new cycle lanes to AnyCorp Ltd.",
@@ -231,7 +236,7 @@ Each section may contain several **fields** specified in the standard, which are
 
 #### Milestones
 
-```{json, eval=FALSE}
+```json
 {
     "description": "A consultation period is open for citizen input.",
     "dueDate": "2015-04-15T17:00:00Z",
@@ -309,7 +314,7 @@ a_boolean_vector <- c(TRUE, FALSE)
 # lists can have elements of different types, associated to a key
 a_list <- list(name = "John", last_name = "Deer", age = 42, married = FALSE)
 
-# there are several ways to access an element from a collection<U+00DF>
+# there are several ways to access an element from a collection
 a_number_vector[0]
 a_string_vector[[1]]
 a_list$name
@@ -343,6 +348,9 @@ Another type of data table available are Tibbles. Tibbles belong to the Tidyvers
 
 Data frames can be converted to tibbles and viceversa; the latter can be useful when dealing with older libraries that are not Tidyverse-ready. The author advises the use of tibbles and favors (as many users in the community) leveraging Tidiverse features and adhering to its guidelines as closely as possible.
 ```{r message=FALSE, warning=FALSE}
+# Packrat should have installed dependencies for you, 
+# you can do it manually by running the command below
+# install.packages("tidiverse")
 library(tidyverse) # Side note: this is how you import a library in R
 ```
 
@@ -358,7 +366,7 @@ The syntax for function definition in R is pretty straightforward and resemblant
 > function ( arglist ) {body}
 
 
-Because the fact that R targets a specific niche (statistical computing), it offers a very rich set of built-in functions and libraries readily avaible for installation. Thus, function calls tend to be much more common in R than function definition.
+Because of the fact that R targets a specific niche (statistical computing), it offers a very rich set of built-in functions and libraries readily available for installation. Thus, function calls tend to be much more common in R than function definition.
 
 Most of the R ecosystem is focused on dealing (cleaning, plotting, modelling) tabular data. As a simple display of basic statistical features, we can use the *summary* function to get descriptive statistics from a table.
 
@@ -388,7 +396,7 @@ The pipe operator passes the value of its left-hand-side operand as the first ar
 
 ### Style
 
-As a final remark, allthough there is no official code style guideline for the R programming language, the author (not surprisingly if you have been paying attention) recommends following the [Tidyverse style guide](http://style.tidyverse.org/index.html)[^2]. The [styler](http://styler.r-lib.org) package is a handy linter and code formatter that can help keeping source code compliant; it includes an RStudio add-in, the easiest way to re-style existing code.
+As a final remark, although there is no official code style guideline for the R programming language, the author (not surprisingly if you have been paying attention) recommends following the [Tidyverse style guide](http://style.tidyverse.org/index.html)[^2]. The [styler](http://styler.r-lib.org) package is a handy linter and code formatter that can help keeping source code compliant; it includes an RStudio add-in, the easiest way to re-style existing code.
 
 [^2]: This notebook was written with the Tidyverse code style guide in mind. Please blame any non-conformant snippet on the lack of good coffee at that point of the writing process :)
 
@@ -418,14 +426,22 @@ sudo gdebi rstudio-xenial-1.1.456-amd64.deb
 
 Besides RStudio Desktop, which can be installed by following the previous set of steps, RStudio is also available in a remote access flavor. RStudio Server is an application that can be installed in a web server, thus offering the same features of the desktop version through a web browser. To find out more about this alternative and how to install it, please refer to the [official documentation](https://www.rstudio.com/products/rstudio/download-server/).
 
-This project uses [Packrat](https://rstudio.github.io/packrat/) to keep track of all the libraries that it depends on. This ensures the portability of the software (on import, the appropriate version for the corresponding OS will be installed) and the reproducibility of the analysis. Therefore, assuming you have Git installed, playing around with this notebook should be as easy as:
+The project this document is generated from uses [Packrat](https://rstudio.github.io/packrat/) to keep track of all the libraries that it depends on. This ensures the portability of the software (on import, the appropriate version for the corresponding OS will be installed) and the reproducibility of the analysis. Therefore, assuming you have Git installed, playing around with this notebook should be as easy as:
 
 1. Cloning the project
 ```{bash, eval=FALSE}
-git clone my-awesome-repo.com
+git clone https://github.com/rparrapy/ocds-r-manual.git
 ```
 2. Opening it with RStudio by using the menu bar option **File -> Open Project...**
 
+
+We will also be using a Postgres database to run our analysis, hence we need to install Postgres in case it is missing in our system. We can do so by running:
+
+```{bash, eval=FALSE}
+sudo apt install postgresql postgresql-contrib
+```
+
+The last command install the Postgres database engine and creates a *postgres* user as a default account to access our databases.
 
 # Data acquisition
 
@@ -450,7 +466,9 @@ index_tb <- as_tibble(xmlToDataFrame(xmlElementsByTagName(xml_top, "item")))
 index_tb
 ```
 
-We then proceed to fetch the JSON content corresponding to each release, using the values of the **link** column defined above. There are many libraries to handle JSON with R, each with its list of pros and cons; because of its focus in performance and web api consumption, we use (jsonlite)[https://cran.r-project.org/web/packages/jsonlite/index.html] in this guide.
+In the snippet above, we start by importing R's *XML* library since Uruguay's API responses are in this data format. The *xmlParse* method fetches the content given by the RSS feed url and parses it, returning a tree-like nested array. We then get the root of the parsed structure and seek every element with the *item* tag by calling the *xmlElementsByTagName* method. We convert the result to a data frame and after that to a tibble using *xmlToDataFrame* and *as_tibble* respectively.
+
+We then proceed to fetch the JSON content corresponding to each release, using the values of the **link** column defined above. There are many libraries to handle JSON with R, each with its list of pros and cons; because of its focus in performance and web api consumption, we use [jsonlite](https://cran.r-project.org/web/packages/jsonlite/index.html) in this guide.
 
 ```{r message=FALSE, warning=FALSE}
 library(jsonlite)
@@ -465,7 +483,10 @@ releases <- apply(index_tb["link"], 1, function(r) {
 releases[[1]]
 ```
 
-The code snippet above got us a list of tibbles, each tibble representing a release. As our next step, we can merge all those tibbles, filling missing values (for example, according to the stage they correspond to, some releases include tender information while some do not) with NA (R's constant for 'Not Available').
+The main function in the snippet above is *fromJSON*, which is provided by *jsonlite*. We use it to fetch the JSON files from the url contained in the *link* column of *index_tb*. The flatten flag indicates that we want the function to squeeze the nested JSON structure as much as possible, to make it suitable for a tabular format. We repeat the process for each row of the tibble using the *apply* function, which applies the function it receives as a parameter to each row and returns the values as a list.
+
+
+At this point we have a list of tibbles, each tibble representing a release. As our next step, we can merge all those tibbles, filling missing values (for example, according to the stage they correspond to, some releases include tender information while some do not) with NA (R's constant for 'Not Available'). Merging severel tibbles row wise is achieved by calling the *bind_rows* function.
 
 ```{r, cache=TRUE}
 releases_tb <- bind_rows(releases)
@@ -478,28 +499,52 @@ Because data from Uruguay includes only the latest 500 releases, actual compilat
 
 We can also read records or releases from a set of JSON files, published by one or more official publishers associated to a country. That is the case of Paraguay, the next country we will be adding to our analysis. Paraguayan open contracting data are published by the National Directorate of Public Tender (*Dirección Nacional de Contrataciones Públicas*, DNCP) and the Ministry of Finance (*Ministerio de Hacienda*); as they share ocids, we should be able to use their published data together.
 
-Let's start with DNCP data, which is stored under *data/records_dncp*:
+To continue with this guide, you should now download a copy of these datasets to your local machine, and store them under the *./data* directory (which should be empty if you just cloned this project). That is:
+
+1. Head over to [https://mega.nz/#F!PCQFzAyY!m54DS0hA3pyKXqergJUBFQ](https://mega.nz/#F!PCQFzAyY!m54DS0hA3pyKXqergJUBFQ).
+2. Download the *data.zip* file and extract its content inside the *./data* directory.
+3. If succesful, you should now have two new folders with .json files in them in your system: *./data/records_dncp* and *./data/releases_mh*.
+
+Before actually loading the data, lets take a small detour to make our data munging more efficient. The size of the datasets we use in this guide ranges from non trivial (with processing taking a few minutes) to challenging (with processing taking several hours). This is aggravated by the fact that R runs in a single thread by default, not leveraging the multicore capabilities that most modern day computers offer. To change that, we can use the *parallel* library, which allows us to run apply-like functions in parallel.
+
 ```{r, warning=FALSE, message=FALSE}
-library(glue)
-library(jsonlite)
+library(glue) # This is just a utility library to concatenate strings
 library(parallel)
+library(lubridate) # if you ever have to work with dates, do yourself a favor and use this
+
 
 # Calculate the number of cores
 no_cores <- detectCores() - 1
 # Initiate cluster
 cl <- makeCluster(no_cores)
-clusterExport(cl, c("fromJSON", "paste", "as_tibble"))
+clusterExport(cl, c("fromJSON", "paste", "as_tibble", "ymd_hms", "select"))
 ```
+
+
+To start using parallel, we define a cluster of size equal to the number of cores available in our machine minus one (not leaving a single core available for other computation can lead to our computer freezing) with the *makeCluster* function. Each of the workers of our newly created cluster runs an R interpreter with no other dependencies; to import libraries we are going to need to them we use the *clusterExport* function.
+
+
+We are now ready to start with DNCP data, which is stored under *data/records_dncp*:
+
 
 ```{r, cache=TRUE}
 files <- list.files("data/records_dncp/", "*.json")
-# fromJSON(paste('data/records_dncp/', [1], sep = ""), flatten = TRUE)
 records <- parLapply(cl, files, function(r) {
   file <- paste("data/records_dncp/", r, sep = "")
-  return(as_tibble(fromJSON(file, flatten = TRUE)[["records"]]))
+  parsed <- fromJSON(file, flatten = TRUE)
+  records <- parsed[["records"]]
+  publishedDate <- ymd_hms(parsed[['publishedDate']])
+  records$publishedDate <- rep(publishedDate, nrow(records))
+  return(as_tibble(records))
 })
 records[[1]]
 ```
+
+The code snippet above uses several of our already familiar functions such as *fromJSON*, *as_tibble* and so on. There are three newcomers that demand explanation:
+
+* *list.files* returns a list of paths corresponding to files under the path that it receives as its first parameter, that match the regular expression it receives as its second parameter.
+* *paste* simply concatenates every string it receives as a parameter, placing the *sep* string between them.
+* *parLapply* is the parallel version of *lapply*, scheduling different executions of the function it receives as a parameters in different workers of our cluster. This can be done since reading different JSON files is an embarrasingly parallel task.
 
 ```{r, cache=TRUE}
 dncp_records_tb <- bind_rows(records)
@@ -507,26 +552,40 @@ remove(records)
 dncp_records_tb
 ```
 
-Data from the Ministry of Finance can be read likewise:
+To free up some space, we use the *remove* function to explicitly clear intermediate results from memory. Data from the Ministry of Finance can be read likewise:
 
 ```{r, cache=TRUE}
 files <- list.files("data/releases_mh/", "*.json")
-# fromJSON(paste('data/records_dncp/', files[1], sep = ""), flatten = TRUE)
-records <- parLapply(cl, files, function(r) {
+releases <- parLapply(cl, files, function(r) {
   file <- paste("data/releases_mh/", r, sep = "")
-  return(as_tibble(fromJSON(file, flatten = TRUE)[["releases"]]))
+  parsed <- fromJSON(file, flatten = TRUE)
+  releases <- parsed[["releases"]]
+  publishedDate <- ymd_hms(parsed[['publishedDate']])
+  # there are some files that don't include any release (?)
+  if (!is.null(nrow(releases)) && nrow(releases) > 0) {
+      releases$publishedDate <- rep(publishedDate, nrow(releases))
+  }
+  return(as_tibble(releases))
 })
 
-mh_releases_tb <- bind_rows(records)
-remove(records)
+mh_releases_tb <- bind_rows(releases)
+remove(releases)
 mh_releases_tb
 ```
 
- ## From a Postgres database with JSONB columns
+## From a Postgres database with JSONB columns
 
 For Mexico and Colombia we process data as a stream, i.e. one record at a time. Data frames and tibbles are stored in memory by R, while stream processing only requires one record to be stored in memory. For this reason, this data processing paradigm is particularly useful when dealing with big data.
 
-The library we are using (jsonlite) includes the *stream_in* function to support (ndjson)[http://ndjson.org] a convenient format to store multiple JSON records in a single file. Since our records are stored in a Postgres database, we have to write a similar feature ourselves. Let's write a function to do precisely that in the next code snippets:
+To continue with this guide, you should now download the backup files of these databases to your local machine, and restore them to your local Postgres instance. To do so:
+
+1. Again, head over to [https://mega.nz/#F!PCQFzAyY!m54DS0hA3pyKXqergJUBFQ](https://mega.nz/#F!PCQFzAyY!m54DS0hA3pyKXqergJUBFQ).
+2. Download the files *ocds_colombia.dump* and *ocds_mexico.dump* to your local hard drive.
+3. Create the databases by running *sudo -u postgres createdb ocds_colombia* and *sudo -u postgres createdb ocds_mexico* from a terminal session.  
+3. Within a terminal session, from the directory where you downloaded the files, run *pg_restore -d ocds_colombia ocds_colombia_dump* and *pg_restore -d ocds_mexico ocds_mexico.dump*.
+4. Check the databases you just created, they should have several tables which were created by the restore process. In particular, the *data* table should contain multiple records that we will read for our analysis.
+
+The library we are using (jsonlite) includes the *stream_in* function to support [ndjson](http://ndjson.org) a convenient format to store multiple JSON records in a single file. Since our records are stored in a Postgres database, we have to write a similar feature ourselves. Let's write a function to do precisely that in the next code snippets:
 
 ```{r}
 library(RPostgreSQL)
@@ -535,20 +594,22 @@ db_engine <- "PostgreSQL"
 host <- "localhost"
 user <- "postgres" # if you are concerned about security
 password <- "" # you should probably change this 2 lines
-port <- 5433
+port <- 5433 # set the port of your Postgres instance, default is 5432
 query <- "SELECT id, data FROM data"
 
 drv <- dbDriver(db_engine)
-con_colombia <- dbConnect(drv, host = host, port = port, dbname = "ocds_colombia", user = user, password = password)
+con_colombia <- dbConnect(drv, host = host, port = port,
+                          dbname = "ocds_colombia", user = user, password = password)
 
-con_mexico <- dbConnect(drv, host = host, port = port, dbname = "ocds_mexico", user = user, password = password)
+con_mexico <- dbConnect(drv, host = host, port = port,
+                        dbname = "ocds_mexico", user = user, password = password)
 ```
 
+We connect and query Postgres through [DBI](https://cran.r-project.org/web/packages/DBI/index.html), a database interface definition for communication between R and relational database management systems. In particular, we use [RPostgreSQL](https://cran.r-project.org/web/packages/RPostgreSQL/index.html), a DBI implementation for PostgreSQL databases.
 
 ```{r}
-stream_in_db <- function(con, query, page_size = 10000) {
+stream_in_db <- function(con, query, page_size = 1000, acc = 0) {
   current_id <- 0
-  acc <- 0
 
   return(function(handler) {
     repeat{
@@ -561,10 +622,9 @@ stream_in_db <- function(con, query, page_size = 10000) {
       
       acc <- handler(data[['data']], acc)
       current_id <- tail(data[['id']], n=1)
-      # print(current_id)
     }
+    return(acc)
   })
-  return(acc)
 }
 
 stream_in_colombia <- stream_in_db(con_colombia, query)
@@ -578,6 +638,9 @@ Let's recap on what we just did:
 1. *stream_in_db* returns a function, which applies a handler received as a parameter to every page of the result set.
 1. Finally, we used *stream_in_db* to get functions pointing at the databases of Mexico and Colombia.
 
+Pagination using *LIMIT* and *OFFSET* is known to degrade its performance as we scan pages further appart from the start. To speed things up as much as possible we use an approach know as *keyset pagination*, 
+which leverages the fact that we have an index defined for the primary key. For a more detailed comparison between pagination approaches please read [this article](http://allyouneedisbackend.com/blog/2017/09/24/the-sql-i-love-part-1-scanning-large-table/).
+
 Now let's take our streaming functions for a ride. To test them out, we can define a dummy handler to count the number of rows of data that result from our query.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE, eval=FALSE}
@@ -590,9 +653,6 @@ sanity_checker <- function(data, acc) {
   return(acc + Reduce("+", m))
 }
 
-result <- stream_in_colombia(sanity_checker)
-stopCluster(cl)
-length(result)
 ```
 
 
@@ -600,11 +660,11 @@ length(result)
 
 # Analysis of contracting data
 
-This section introduces a bunch of useful tools to perform basic data analysis using R, accompanied by some basic examples to showcase their features. It ends with the calculation of a few OCDS indicators using the datasets obtained in the previous section.
+This section introduces a bunch of useful tools to perform basic data analysis using R, accompanied by some basic examples to showcase their features. 
 
 ## Introducing the Tidyverse
 The Tidyverse is a collection of R packages aimed at data science tasks; besides the libraries, it shares a common set of data structures, a style guide, and an underlying philosophy for data analysis.
-The core Tidyverse (packages)[https://www.tidyverse.org/packages/] are:
+The core Tidyverse [packages](https://www.tidyverse.org/packages/) are:
 
 * gglplot2: a system for declaratively creating graphics, based on The Grammar of Graphics, a tool that enables the user to concisely describe most of the graphical mappings used in data visualization. You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
 * dplyr: an implementation of a grammar of data manipulation, providing a consistent set of verbs that solve the most common data manipulation challenges
@@ -646,7 +706,7 @@ In the example above, the data is untidy because *2017* and *2018* are values of
 world_population %>% gather(`2017`, `2018`, key = "year", value = "inhabitants")
 ```
 
-Much better! In the final result, the problematic columns are dropped and our dataset is now 100% tidy.
+*Gather* receives as parameters the names of the columns we want to pivot, and the names of the two new columns we want to create. Much better! In the final result, the problematic columns are dropped and our dataset is now 100% tidy.
 
 ### Spreading
 
@@ -668,6 +728,8 @@ In this case we have variables stored as cell values, which is the case of *inha
 world_count %>% spread(key = type, value = count)
 ```
 
+*Spread* turns every value in the column given by its *key* parameter and turns it into a separate column, filling in the cells with the corresponding value from the column given by its *value* parameter.
+
 ### Separating
 
 Our final tidyr function, **separate**, allows us to solve cases in which multiple variable values are stored in the same cell. As an example, consider the result of parsing the Uruguayan RSS feed that we downloaded in a previous section.
@@ -681,12 +743,13 @@ It is clear that the title column contains values for two variables: *id_compra*
 ```{r}
 index_tb %>% 
   separate(title, into = c("id_compra", "release_id"), sep = ",") %>%
-  transform(id_compra=str_replace(id_compra,"id_compra:","")) %>%  # don't worry too much about
-  transform(release_id=str_replace(release_id,"release_id:",""))   # these two lines
+  transform(id_compra=str_replace(id_compra,"id_compra:","")) %>%  
+  transform(release_id=str_replace(release_id,"release_id:",""))   %>%
   # the last 2 lines just remove the needless prefixes
+  head(5)
 ```
 
-The last two lines of the code snippet above are just a sneak peak of one of the features of the package we will cover next: dplyr. 
+*Separate* splits the value of a single column by the character given by the *sep* parameter; the names of the newly defined columns are given by the *into* parameter, which should be a collection of strings. The last two lines of the code snippet above are just a sneak peak of one of the features of the package we will cover next: dplyr. 
 
 ## Data analysis functions
 
@@ -703,12 +766,13 @@ releases_tb
 Let's suppose we need a column with the *name* of the month when a release was made. This value is not readily available in the dataset, but the information is contained in the *date* column and can be extracted with some help from **mutate**:
 
 ```{r}
-library(lubridate) # if you ever have to work with dates, do yourself a favor and use this
 
 uruguay_releases_with_month = releases_tb %>% mutate(month = month.name[month(date)])
 ## month.name is a vector with the name of each month
 uruguay_releases_with_month[c('ocid', 'month')]
 ```
+
+*Mutate* receives a tibble as its first parameter; it receives a variable assignment expression as the second parameter, which is evaluated row-wise to produce the new column.
 
 ### Selecting
 
@@ -718,9 +782,11 @@ In our code snippet above we selected certain columns of our tibble using array-
 select(uruguay_releases_with_month, ocid, month)
 ```
 
+*Select* receives a variable number of parameters, the first one must be a tibble or data frame and the rest of them are the columns to be included in the selection.
+
 ### Filtering
 
-A very common operation when dealing with data is to select a subset of rows that are of interest for our analysis. For example, let's assume we are only interested in releases that are related to awards. We can identify the stage of the contracting process to which a release is related through the *column*.
+A very common operation when dealing with data is to select a subset of rows that are of interest for our analysis. For example, let's assume we are only interested in releases that are related to awards. We can identify the stage of the contracting process to which a release is related through the *tag* column.
 
 ```{r}
 releases_tb[1,]$tag
@@ -737,6 +803,8 @@ awards_tb
 awards_tb[10, ]$tag
 ```
 
+*Filter* receives a tibble as its first parameter and a boolean expression as the second one, the boolean expression is evaluated for each row and only rows wich evaluate to *TRUE* are included in the final result.
+
 ### Summarizing
 
 Summarization allows us to aggregate variables based on a preset grouping. To illustrate this we can revisit our example using the Iris dataset:
@@ -749,9 +817,6 @@ iris %>%
 ```
 
 In the snippet above, we start by grouping the dataset by species name and then summarize every numeric column using the mean as the aggregator function.
-
-## Computing basic OCDS indicators
-
 
 
 
@@ -774,7 +839,7 @@ knitr::include_graphics("visual_cues.jpg")
 
 As the reader might have noticed, many mappings are possible, but not all of them seem equally appropriate. In fact, statisticians William Cleveland and Robert McGill explored this intuition further by running some experiments with human volunteers to determine which visual attributes encoded quantitative information more accurately. Their findings are summarized in the figure below:
 
-```{r, echo=FALSE, fig.cap="Potential attribute mapping for a quantitative variable."}
+```{r, echo=FALSE, fig.cap="Preattentive attributes sorted by their suitability to encode quantitative variables."}
 knitr::include_graphics("ordered_visual_cues.jpg")
 ```
 
@@ -806,15 +871,14 @@ Let's see this template in action by plotting our well-known Iris dataset as a s
 ggplot(data = iris) + geom_point(mapping = aes(x = PetalLength, y = PetalWidth, color = Name))
 ```
 
-As the reader might have noticed, **ggplot2** favor convention over configuration and any plot that we draw with it includes many good practices out of the box. For example, in the scatter plot above we got axis labelling and a legend for *free* just by specifying our set of aesthetic mappings. 
+As the reader might have noticed, **ggplot2** favors convention over configuration and any plot that we draw with it includes many good practices out of the box. For example, in the scatter plot above we got axis labelling and a legend for *free* just by specifying our set of aesthetic mappings. 
 
-There are several other components of the **ggplot2** grammar, but for this brief introduction our simplified template will do. To check which other elements are available, besides an exhaustive list of *geoms* and *aesthetics* please visit the (official website)[https://ggplot2.tidyverse.org] of the library.
+There are several other components of the **ggplot2** grammar, but for this brief introduction our simplified template will do. To check which other elements are available, besides an exhaustive list of *geoms* and *aesthetics* please visit the [official website](https://ggplot2.tidyverse.org) of the library.
 
 
 ##  Visualizing Open Contracting data
 
-
-### Paraguay
+Now that we know the basics of **ggplot2** we can go ahead and start making some plots ...almost. Since we are mostly interested in comparing amounts spent by year and buyer, we can start off by extracting all rows of our dataset that contain at least one contract. We achieve exactly that by building a boolean index with one element per row of our dataset, indicating whether its corresponding row passes our condition or not.
 
 ```{r}
 contract_indices <- parApply(cl, dncp_records_tb, 1, function(r) {
@@ -823,24 +887,34 @@ contract_indices <- parApply(cl, dncp_records_tb, 1, function(r) {
 })
 ```
 
+
+Once we have our boolean index, we can use it to filter out the records that we are not interested in and keep the ones that are useful for our analysis; which we achieve this by doing `dncp_records_tb[contract_indices, ]` in the snippet below. After that, we extract the contracts and the buyer name from the records we kept.
+
 ```{r}
 contracts <- parApply(cl, dncp_records_tb[contract_indices, ], 1, function(r) {
   result <- r['compiledRelease.contracts'][[1]]
   result['buyer.name'] <- r['compiledRelease.buyer.name']
+  result['publishedDate'] <- r['publishedDate']
   return(result)
 })
 ```
+
+
+The `contracts` object defined above is a nested collection of contracts. To make it a single tibble we call the `bind_rows` function. We explicitly free the memory we are no longer going to use by removing the `contracts` object.
 
 ```{r}
 contracts_dncp <- bind_rows(contracts)
 rm(contracts)
 ```
 
+
+We now have a contracts dataset from DNCP ready for plotting and analysis. We can follow similar steps to get one from the Finance Ministry.
+
 ```{r}
 contracts <- parApply(cl, mh_releases_tb, 1, function(r) {
   result <- r['contracts'][[1]]
   result['buyer.name'] <- r['buyer.name']
-  result['procurement.method'] <- r['tender.procurementMethodDetails']
+  result['publishedDate'] <- r['publishedDate']
   return(result)
 })
 ```
@@ -851,48 +925,223 @@ contracts_hacienda <- bind_rows(contracts)
 rm(contracts)
 ```
 
-```{r}
-subset(contracts_dncp['dncpContractCode'], (dncpContractCode %in% contracts_hacienda['dncpContractCode']))
-```
-```{r}
-subset(contracts_hacienda['dncpContractCode'], (dncpContractCode %in% contracts_dncp['dncpContractCode']))
-```
-```{r}
-contracts_paraguay <- bind_rows(contracts_dncp, contracts_hacienda)
-head(contracts_paraguay)
-```
+We know there is significant overlap between the publications of DNCP and the Ministry of Finance, so naively merging both tibbles will end up in contract duplication, hence making our analysis invalid. First, let's make sure the overlap actually exists, by selecting the contracts that are present in the DNCP dataset **and** the Ministry of Finance dataset. The `subset` function selects rows from a tibble based on a condition; in this case, a non-empty subset would confirm the existance of duplicates.
+
 
 ```{r}
-contracts_dncp %>%
+overlap <- subset(contracts_dncp, (dncpContractCode %in% contracts_hacienda[['dncpContractCode']]))['dncpContractCode']
+dim(overlap)
+```
+
+Having confirmed the presence of duplicate contracts, we need to come up with a smarter merging strategy: lets merge both tibbles together and group them by *dncpContractCode* (this should group duplicates together), sort the rows within each group by *publishedDate* in ascending order, and finally pick the last row from each group. This preprocessing step, coded in the snippet below, ensures that we only include the most current version of a contract in our analysis. 
+
+```{r}
+contracts_paraguay <- bind_rows(contracts_dncp, contracts_hacienda) %>%
+  group_by(dncpContractCode) %>%
+  arrange(publishedDate) %>%
+  slice(n()) %>%
+  ungroup
+
+contracts_paraguay
+```
+
+Next, there is the issue of contract currency. Let's have a look at which currencies are used and how many contracts were signed for each one.
+
+```{r}
+contracts_paraguay %>%
   group_by(value.currency) %>%
   summarise(count = n())
 ```
 
+Results presented in the table above show that the vast majority of contracts were signed with amounts in Paraguayan Guaranies (PYG), a non-so-surprising fact given that we are looking at Paraguayan contracts. We could include contracts with amounts in US dollars by using a given exchange rate, but to keep things simple we will consider only the former currency.
+
+To continue with our analysis, lets get a tibble of our contract dataset grouped by year and some interesting summaries. First, we extract the year from the *dateSigned* field using the `mutate` function, then we filter some invalid rows (na values) and outliers while keeping only the contracts in PYG using the `filter` function. Finally, we group the remaining contracts by year with the `group_by` function and obtain the total count and amount per group using the `summarise` function.
+ 
 ```{r}
-contracts_dncp %>%
+by_year <- contracts_paraguay %>%
   mutate(signed_year = year(dateSigned)) %>%
-  filter(!is.na(signed_year), !is.na(value.amount), signed_year < 2019, value.currency == 'PYG') %>%
+  filter(!is.na(signed_year), !is.na(value.amount), signed_year < 2019, signed_year > 2009, value.currency == 'PYG') %>%
   group_by(signed_year) %>%
   summarise(count = n(), amount = sum(value.amount))
 ```
 
+With our dataset defined above, we can draw line plots with a few lines of **ggplot2** magic. Let's plot the number of contracts and the total amount for all contracts per year:
 
 ```{r}
-contracts_dncp %>%
+ggplot(data=by_year, aes(x=signed_year, y=count)) +
+  geom_line(color="blue") +
+  geom_point() +
+  labs(x = 'Year', y = 'Number of contracts')
+```
+
+
+```{r}
+ggplot(data=by_year, aes(x=signed_year, y=amount)) +
+  geom_line(color='springgreen4') +
+  geom_point() +
+  labs(x = 'Year', y = 'Total Amount (PYG)')
+```
+
+We have done some line plots, what about drawing some bars? Lets draw the number of contracts per buyer for a given year (2017). You should be noticing a pattern by now: we start by getting our data in the right shape using **dplyr** verbs, and only then we do the plotting. Bar charts require an additional intermediate step, at least to give them the typical top-n look: buyer names are character arrays and hence sorted lexicographically by default, we need to redefine the column using the factor type (used for categorical values) and set a custom ordering using the `order` function.   
+
+```{r}
+count_by_buyer <- contracts_paraguay %>%
   mutate(signed_year = year(dateSigned)) %>%
   filter(value.currency == 'PYG', signed_year == 2017) %>%
   group_by(buyer.name) %>%
   summarise(ccount = n()) %>%
-  arrange(desc(ccount))
+  arrange(desc(ccount)) %>%
+  head(5)
+
+count_by_buyer$buyer.name <- factor(count_by_buyer$buyer.name, levels = count_by_buyer$buyer.name[order(count_by_buyer$ccount)])
+
+
+ggplot(data=count_by_buyer, aes(x=buyer.name, y=ccount)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  coord_flip() +
+  labs(y = 'Number of contracts', x = 'Buyer')
 ```
 
+
+We can follow similar steps to draw a bar plot considering the total amount by buyer:
+
 ```{r}
-contracts_dncp %>%
+amount_by_buyer <- contracts_paraguay %>%
   mutate(signed_year = year(dateSigned)) %>%
   filter(value.currency == 'PYG', signed_year == 2017) %>%
   group_by(buyer.name) %>%
   summarise(amount = sum(value.amount)) %>%
-  arrange(desc(amount))
+  arrange(desc(amount)) %>%
+  head(5)
+
+top_buyers = amount_by_buyer$buyer.name
+amount_by_buyer$buyer.name <- factor(amount_by_buyer$buyer.name, levels = amount_by_buyer$buyer.name[order(amount_by_buyer$amount)])
+
+
+ggplot(data=amount_by_buyer, aes(x=buyer.name, y=amount)) +
+  geom_bar(stat="identity", fill="springgreen4") +
+  coord_flip() +
+  labs(y = 'Total Amount (PYG)', x = 'Buyer')
 ```
+
+The plots we have drawed so far are useful to show grouped summaries, but they do not give us any clue about the underlying distribution of the plotted numerical variable. Box plots let us visualize distributions grouped by a categorical variable, together with some very useful statistics; the figure below (taken from  [a stats course from the BBC](http://www.bbc.co.uk/schools/gcsebitesize/maths/statistics/representingdata3hirev6.shtml) shows how to interpret each component of a box plot:
+
+```{r, echo=FALSE, fig.cap="Elements of a box plot."}
+knitr::include_graphics("boxplot.jpg")
+```
+
+The beauty of **ggplot2** lies on its declarative nature. Take a look at the code snippet below, which allows us to draw a box plot: the only significant difference with previous example is the usage of another geom (`geom_boxplot`).
+
+```{r}
+contracts_top5_buyers <- contracts_paraguay %>%
+  mutate(signed_year = year(dateSigned)) %>%
+  filter(value.currency == 'PYG', signed_year == 2017, buyer.name %in% top_buyers) %>%
+  arrange(desc(value.amount)) %>%
+  tail(1000)
+
+contracts_top5_buyers$buyer.name <- factor(contracts_top5_buyers$buyer.name)
+
+
+ggplot(data=contracts_top5_buyers, aes(x=buyer.name, y=value.amount, color=buyer.name)) +
+  geom_boxplot(outlier.colour="black", outlier.shape=NA, notch=FALSE) +
+  labs(y = 'Total Amount (PYG)', x = 'Buyer') +
+  theme(axis.text.y=element_blank()) +
+  coord_flip()
+```
+
+There was a tiny lie in the previous paragraph, as there is another difference in the snippet above: since there is a buyer with contracts much larger than the others, our box plot would actually degenerate if we plotted all contracts. To avoid this ugly scenario we restrict ourselves to the thousand contracts in the lower end of our dataset in terms of amount.
+
+A histogram is an appropriate choice if we want to represent the distribution of a quantitative variable such as contract amount without any grouping. A histogram splits the entire domain of the variable in multiple equally sized ranges (usually called bins) and counts how many of the samples (contracts, in this case) fall in each one. The code snippet below draws a histogram of contract amounts of 2017; again, to filter outliers in order to get a meaningful plot we consider only the bottom 10000 contracts.
+
+```{r}
+selected_contracts <- contracts_paraguay %>%
+  mutate(signed_year = year(dateSigned)) %>%
+  filter(value.currency == 'PYG', signed_year == 2017, !is.na(value.amount)) %>%
+  arrange(desc(value.amount)) %>%
+  tail(10000)
+
+ggplot(data=selected_contracts, aes(value.amount)) +
+  geom_histogram(fill='steelblue', col='black') +
+  labs(x = 'Amount (PYG)', y = 'Number of Contracts')
+```
+
+In the last two examples we have been restricting our analysis to a certain tail of the distribution. This is not uncommon, specially in the presence of outliers, since the difference in magnitudes makes it hard to extract meaningful conclusions from an overall plot. It is easy to change the part of the distribution we are looking at by changing the parameter of the `tail` function, or by using its complement, the `head` function. If you are running this notebook in an interactive mode, you can take a few minutes to do so and try to find some interesting patterns in the data.
+
+As our last plot we will draw a histogram for Mexican contracts, which will be read from a PostgreSQL database with the streaming helper function we implemented in previous sections. We do so by defining a callback function that will extract the contract amounts for every contract in every published *compiledRelease*. In summary, the callback defined in the snippet below does the following:
+
+* It parses a release using **jsonlite** helper functions.
+* Given a release, it extracts the contracts if there are any (checked using the `dim` function).
+* For a given contract, if no amount is available it sets a dummy amount to allow filtering later on.
+* It merges contracts from the current page with contracts from previously processed pages (stored in the *acc* variable). 
+
+
+```{r cache=TRUE, warning=FALSE}
+amount_getter <- function(data, acc) {
+  m <- parLapply(cl, data, function(e) {
+    t <- as_tibble(fromJSON(e, flatten = TRUE)$compiledRelease$contracts)
+    if (dim(t)[[1]] > 0) {
+      if (!("valueWithTax.amount" %in% colnames(t))) {
+        t$valueWithTax.amount = -1
+        t$valueWithTax.currency = "BTC"
+      }
+      return(select(t, valueWithTax.amount, valueWithTax.currency))
+    } else {
+      return(NULL)
+    }
+  })
+  
+  if (is.tibble(acc)) {
+    return(bind_rows(acc, m))
+  } else {
+    return(bind_rows(m))
+  }
+}
+
+contracts <- stream_in_mexico(amount_getter)
+```
+
+
+Notice how cumbersome this á-la-map-reduce processing is, no matter how efficient, when compared to the **dplyr** functions we used in previous examples. The moral of the story is: while R *can* handle out-of-core computation, several of its tools are not really well prepared to handle such a case. Having said that, once we have a tibble that **does** fit into memory things get much friendlier again, as seen in the following code snippets to draw our histogram. 
+
+```{r}
+contracts_mx <- contracts %>%
+  filter(valueWithTax.currency == 'MXN') %>%
+  arrange(desc(valueWithTax.amount)) %>%
+  tail(10000)
+```
+
+
+```{r}
+
+ggplot(data=contracts_mx, aes(valueWithTax.amount)) +
+  geom_histogram(fill='forestgreen', col='black') +
+  labs(x = 'Amount (MXN)', y = 'Number of Contracts')
+
+```
+
+
+
+
+```{r}
+stopCluster(cl)
+```
+
+Since we are done with our heavy data munging, let's not forget to clean up after ourselves. The `stopCluster` function releases all the resources used by our parallel processing nodes.
+
+#  Recommendations and conclusions
+
+In the pages of this guide we have introduced the reader to the Open Contracting Data Standard and the R programming language; furthermore, we have shown how to use R, and more specifically tools available as a part of the **Tidyverse**, to perform basic data fetching, cleaning, analysis and visualization.
+
+The specifics of the data format and the volume of the available dataset have given us enough reason to introduce more advanced concepts such as parallel processing. Having said that, publishers could greatly improve the experience of prospective data analysts by:
+
+* Providing an **ndjson** dump of their datasets, which would allow the usage of **jsonlite's** *stream_in* and *stream_out* functions.
+* Even better, publishing unnormalized tabular datasets of objects of interest, such as contracts. This is important because a) the largest overhead of out-of-core computations in our experience are serialization and flattening costs and b) most data analysis tools are designed with tabular data in mind.
+* Maximizing standard coverage; in other words, using more fields provided by the standard when publishing their datasets.
+
+Having reached this point, the reader should be able to do their own analysis on OCDS dataset using the R programming language. Throughout the guide, we have provided several links that point to valuable resources to keep on learning about the language and its rich tool ecosystem. Now it's time to use what we learned to pursue the goal of the OCDS: to increase contracting transparency, and allow deeper analysis of contracting data.
+
+
+
+
 
 
