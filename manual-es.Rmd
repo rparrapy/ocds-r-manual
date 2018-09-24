@@ -2,6 +2,7 @@
 title: "Analizando datos de Open Contracting"
 author: "Rodrigo Parra"
 subtitle: Un Manual usando el lenguaje de programación R
+lang: es-ES
 output:
   bookdown::html_document2:
     fig_caption: yes
@@ -33,9 +34,9 @@ caption {
 </style>
 
 \newpage
-# Introduction
+# Introducción
 
-El objetivo de este manual es proveer la base necesaria para analizar y visualizar datos de Open Contracting usando el lenguaje de programación R a las personas interesadas en esta interesante y desafiante tarea. Un conocimiento básico de programación de computadoras será útil a leer este documento;  sin embargo, se proveerá una guía suficiente para que lectores menos técnicos puedan también seguir el manual.
+El objetivo de este manual es proveer la base necesaria para analizar y visualizar datos de Open Contracting usando el lenguaje de programación R a las personas interesadas en esta interesante y desafiante tarea. Un conocimiento básico de programación de computadoras será útil al leer este documento;  sin embargo, se proveerá una guía suficiente para que lectores menos técnicos puedan también seguir el manual.
 
 Como parte de esta guía, se obtendrán, limpiarán, analizarán y graficarán datos de Open Contracting de 4 países miembros de la Open Contracting Partnership: Paraguay, México, Uruguay y Colombia. Este documento fue escrito utilizando [R Notebooks](https://rmarkdown.rstudio.com/r_notebooks), una herramienta que permite integrar Markdown y código R de manera conveniente, pudiendo exportarse el resultado en formato HTML y PDF. El código fuente de este proyecto está disponible [aquí](https://https://github.com/rparrapy/ocds-r-manual).
 
@@ -45,7 +46,7 @@ El resto de este documento está organizado de la siguiente manera:
 
 *  La sección 2 trata de la adquisición y limpieza de datos, haciendo énfasis en la lectura y procesamiento de archivos en formato JSON con R.
 
-* La sección 3 presenta el [Tidiverse](https://www.tidyverse.org), una colección de paquetes de R diseñados para realizar tareas de ciencia de datos.
+* La sección 3 presenta el [Tidyverse](https://www.tidyverse.org), una colección de paquetes de R diseñados para realizar tareas de ciencia de datos.
   
   
 * Finalmente, la sección 4 introduce [ggplot2](https://ggplot2.tidyverse.org) y la gramática de gráficos en la cual está basado, para luego dibujar varias visualizaciones que describen los datasets adquiridos.
@@ -59,7 +60,6 @@ Este estándar de datos, diseñado y desarrollado a través de un proceso abiert
 
 La intención de esta sección es introducir el estándar al lector, los casos de uso para los cuales fue diseñado y los conceptos básicos necesarios para su aplicación. La mayoría del contenido fue obtenido de la documentación oficial del estándar; para una introducción más detallada del estándar, favor referirse a la [guía para empezar](http://standard.open-contracting.org/latest/en/getting_started/).
 
-The intention of this section is to introduce the reader to the standard, the use cases it was designed for and the basic concepts needed to apply it. Most of the content was taken from the official documentation of the standard; for a more thorough introductory walktrough, please refer to the [getting started guide](http://standard.open-contracting.org/latest/en/getting_started/).
 
 ### Usuarios y casos de uso
 
@@ -73,10 +73,10 @@ El estándar fue diseñado con cuatro grupos de necesidades de usuario en mente:
 Para saber quien está usando datos publicados de acuerdo al estándar y de que manera lo están haciendo, dirigirse al [sitio web de la Open Contracting Partnership](http://www.open-contracting.org/). Cuatro casos de uso potenciales de datos abiertos de contrataciones son:
 
 
-* Valor por dinero en la adquisición: ayudando a oficiales de gobierno a lograr un bune valor por dinero durante el proceso de contratación, y analizando si esta meta fue lograda con posterioridad.
+* Valor por dinero en la adquisición: ayudando a oficiales de gobierno a lograr un buen valor por dinero durante el proceso de contratación, y analizando si esta meta fue lograda con posterioridad.
 * Detección de fraude y corrupción: identificando banderas rojas que puedan indicar corrupción mediante el estudio de contratos individuales o redes de contratación basadas en financiación, propiedad e intereses.
 * Competencia por contratos públicos: permitiendo a empresas privadas comprender el potencial de los canales de oportunidades de compras públicas, mediante el estudio de información relacionada a contrataciones pasadas y presentes.
-* Supervisión de la prestaciónd e servicios: ayudando a actores interesados a aprovechar la trazabilidad del proceso de contrataciones públicas con fines de monitoreo, relacionando datos de presupuesto a los contratos y resultados de su ejecución.
+* Supervisión de la prestación de servicios: ayudando a actores interesados a aprovechar la trazabilidad del proceso de contrataciones públicas con fines de monitoreo, relacionando datos de presupuesto a los contratos y resultados de su ejecución.
 
 ### El proceso de contratación
 
@@ -84,7 +84,7 @@ El estándar define el proceso de contratación como:
 
 > Toda la información relativa a la planeación, la licitación, las adjudicaciones, los contratos y la ejecución de contratos relacionados con un solo proceso de iniciación.
 
-El estándar cubre todas las etapas del proceso de contratación, aunque algunos procesos pueden no incluir todos los pasos posibles. Las etapas del proceso de contratación, con ejemplos de atributos que pueden estar asociados a cada una, se presentan en la siguiente figura.
+El estándar cubre todas las etapas del proceso de contratación, aunque algunos procesos pueden no incluir todos los pasos posibles. Las etapas del proceso de contratación, con ejemplos de atributos que pueden estar asociados a cada una, se presentan en la figura 1.
 
 
 ```{r include=FALSE}
@@ -93,8 +93,8 @@ knitr::opts_chunk$set(cache = TRUE, warning = FALSE,
 ```
 
 
-```{r, echo=FALSE, fig.cap="Etapas del proceso de contratación."}
-knitr::include_graphics("procurement-stages.png")
+```{r, echo=FALSE, fig.cap="Etapas del proceso de contratacion."}
+knitr::include_graphics("procurement-stages-es.png")
 ```
 
 Con fines de identificación, cada proceso de contratación tiene asignado un identificador único de Open Contracting (ocid), el cual puede utilizarse para relacionar datos de diferentes etapas. De modo a evitar solapamiento entre publicadores, un publicador puede incluir un prefijo a todos los identificadores que genera. Se recomienda a los publicadores registrar su prefijo [aquí](http://standard.open-contracting.org/latest/en/implementation/registration/).
@@ -108,7 +108,7 @@ Los procesos de contratación son representados como **documentos** en el están
 * metadatos de la entrega (release metadata): información contextual sobre cada entrega de datos;
     * partes (parties): información sobre las organizaciones y otros participantes involucrados en el proceso de contratación;
     * planeación (planning): información sobre los objetivos, presupuestos y proyectos a los que se refiere un proceso de contratación;
-    * licitación (tender): información sobre la forma en que tendrá lugar la licitación o se ha realizado;
+    * licitación (tender): información sobre la forma en que tendrá lugar la licitación o la forma en que se ha realizado;
     * adjudicación (award): información sobre las adjudicaciones otorgadas como parte de un proceso de contratación;
     * contracto (contract): información sobre contratos firmados como parte de un proceso de contratación;
         * implementación (implementation): información sobre el progreso de cada contrato hasta su finalización.
@@ -146,7 +146,6 @@ Existen dos tipos de documentos definidos en el estándar:
 
 Cada sección puede contener varios **campos** especificados en el estándar, los cuales se utilizan para representar datos. Estos elementos pueden aparecer varias veces en diferentes secciones del mismo documento; por ejemplo, pueden haber items en la licitación (para indicar items que un comprador desea comprar), en la adjudicación (para indicar items que han sido adjudicados) y en el contrato (para indicar items que forman parte del contrato). Algunos campos, acompañados de documentos JSON correspondientes, se presentan a continuación.
 
-Each section may contain several **fields** specified in the standard, which are used to represent data. These objects can appear several times in different sections of the same document; for example, items can occur in tender (to indicate the items that a buyer wishes to buy), in an award object (to indicate the items that an award has been made for) and in a contract object (to indicate the items listed in the contract). Some example fields, accompanied by corresponding JSON snippets, are presented below.
 
 #### Partes (Organizaciones)
 
@@ -270,7 +269,7 @@ El estándar de datos Open Contracting se mantiene usando [JSON Schema](http://j
 
 ## Una introducción al lenguaje de programación R
 
-R es un lenguaje de programación interpretado multiparadigma y un ambiente de desarrollo software orientado a la computación estadística, utilizado comúnmente para análisis de datos. Se publica bajo [la licencia GPL v2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) y su mantenimiento está a cargo de la [R Foundation](https://www.r-project.org/foundation/), con paquetes binarios disponibles para GNU/Linux, macOS and Windows. Aunque el instalador básico incluye una interfaz por línea de comandos, varios ambientes de desarrollo integrados gráficos (IDE) se encuentran disponibles, entre los cuales RStudio y RStudio Server merecen mención especial[^1].
+R es un lenguaje de programación interpretado multiparadigma y un ambiente de desarrollo software orientado a la computación estadística, utilizado comúnmente para análisis de datos. Se publica bajo [la licencia GPL v2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) y su mantenimiento está a cargo de la [R Foundation](https://www.r-project.org/foundation/), con paquetes binarios disponibles para GNU/Linux, macOS y Windows. Aunque el instalador básico incluye una interfaz por línea de comandos, varios ambientes de desarrollo integrados gráficos (IDE) se encuentran disponibles, entre los cuales RStudio y RStudio Server merecen mención especial[^1].
 
 En esta sección introduciremos la sintaxis y algunas funcionalidades básicas de R; luego de esto, el lector estará mejor preparado para entender el código utilizado para el análisis del resto de esta guía. Una referencia completa del lenguaje R se encuentra fuera del alcance de este documento, razón por la cual varias funcionalidades se omiten en esta sección. Si el lector se sintiese inclinado a aprender más sobre R, por necesidad o curiosidad, una lista de manuales mantenidos por el equipo de desarrollo de R se encuentra disponible [aquí](https://cran.r-project.org/manuals.html). 
 
@@ -281,7 +280,7 @@ R.version
 ```
   
 
-[^1]: El autor recomiendo RStudio como la manera más conveniente de ejecutar código R y cree que este IDE es una de las principales razones tras la popularidad de R. En consecuencia, esta guía fue escrita usando RStudio v1.1.453 en macOS High Sierra.
+[^1]: El autor recomienda RStudio como la manera más conveniente de ejecutar código R y cree que este IDE es una de las principales razones tras la popularidad de R. En consecuencia, esta guía fue escrita usando RStudio v1.1.453 en macOS High Sierra.
 
 
 ### Operadores
@@ -357,12 +356,12 @@ df$name # También es posible acceder a una columna directamente a partir del da
 
 Otro tipo de tabla de datos disponible son los Tibbles. Los Tibbles pertenecen al Tidyverse, un conjunto de librerías para realizar análisis de datos en R siguiendo buenas prácticas que se describirá con más detalle en otra sección. Por ahora, basta pensar en los Tibbles como data frames con algunos problemas solucionados. Por ejemplo, al imprimir un data frame se despliegan todas las filas en pantalla, lo cual puede resultar problemático para datasets grandes; en cambio, al imprimir un Tibble se despliegan solamente las primeras 10 filas por defecto.
 
-Un data frame puede convertirse a Tibble y viceversa; este último caso puede ser útil al lidiar con librerías antiguas que no estén adaptadas al Tidyverse. El autor aconseja el uso de tibbles y recomienda (como muchos miembros de la comunidad) aprovechar las funcionalidades del Tidiverse y respetar sus delineamientos tanto como sea posible.
+Un data frame puede convertirse a Tibble y viceversa; este último caso puede ser útil al lidiar con librerías antiguas que no estén adaptadas al Tidyverse. El autor aconseja el uso de tibbles y recomienda (como muchos miembros de la comunidad) aprovechar las funcionalidades del Tidyverse y respetar sus delineamientos tanto como sea posible.
 
 ```{r message=FALSE, warning=FALSE}
 # Packrat debe haber instalado las dependencias del proyecto,
 # caso contrario, puedes hacerlo manualmente con el siguiente comando
-# install.packages("tidiverse")
+# install.packages("tidyverse")
 library(tidyverse) # Nota: así se importa un paquete en R
 ```
 
@@ -378,7 +377,7 @@ La sintaxis para definición de funciones en R es bastante similar a la de otros
 
 > function ( arglist ) {body}
 
-Debido a que R apunta a un nicho específico (computación estadística), el lenguaje ofrece un conjunto rico de funciones por defecto, además de muchas librerías disponibles para su instalación. Por este motivo, las llamadas a funciones tienden a ser mucho más frecuentes en R que la definición de funciones.
+Debido a que R apunta a un nicho específico (computación estadística), el lenguaje ofrece un conjunto variado de funciones por defecto, además de muchas librerías disponibles para su instalación. Por este motivo, las llamadas a funciones tienden a ser mucho más frecuentes en R que la definición de funciones.
 
 La mayor parte del ecosistema de R está enfocado en tratar (limpiar, visualizar, modelar) datos tabulares. Como ejemplo sencillo de las funcionalidades estadísticas básicas podemos usar la función *summary* para obtener estadísticas descriptivas de una tabla.
 
@@ -405,7 +404,7 @@ iris %>%
   ungroup()
 ```
 
-El operador pipe pasa el valor de su operando izquierdo como el primer argumento de su operando derecho. De esta forma, al usarlo podemos evitar la declaración de variables para almacenar resultados intermedios (que ensucian el espacio de nombres) o el anidamiento de llamadas (que pueden ser difíciles de leer con tantos paréntesis).
+El operador pipe pasa el valor de su operando izquierdo como el primer argumento de su operando derecho. De esta forma, al usarlo podemos evitar la declaración de variables para almacenar resultados intermedios (que contaminan el espacio de nombres) o el anidamiento de llamadas (que pueden ser difíciles de leer con tantos paréntesis).
 
 
 ### Estilo
@@ -507,7 +506,7 @@ releases[[1]]
 La principal función del fragmento de código anterior es *fromJSON*, la cual es proveida por *jsonlite*. 
 La utilizamos para obtener los documentos JSON a partir de la url contenida en la columna *link* de *index_tb*. La bandera flatten indica que queremos que la función aplane lo más posible la estructura de los JSON anidados, dejándolos en un formato más apropiado para su representación tabular. Repetimos este proceso por cada file del tibble usando la función *apply*, la cual ejecuta la función que recibe como parámetro por cada file y retorna una lista como resultado.
 
-En este punto tenemos una lista de tibbles, cada uno representando una entrega. El siguiente paso es unir estos tibbles, rellenando los valores faltantes (por ejemplo, de acuerdo a la etapa a la que corresponden, algunas entregas contienen información de licitación mientras otras no) con NA (la constanste de R que simboliza 'no disponible'). Podemos lograr esto usando la función *bind_rows*.
+En este punto tenemos una lista de tibbles, cada uno representando una entrega. El siguiente paso es unir estos tibbles, rellenando los valores faltantes (por ejemplo, de acuerdo a la etapa a la que corresponden, algunas entregas contienen información de licitación mientras otras no) con NA (la constante de R que simboliza 'no disponible'). Podemos lograr esto usando la función *bind_rows*.
 
 
 ```{r, cache=TRUE}
@@ -584,7 +583,7 @@ releases <- parLapply(cl, files, function(r) {
   parsed <- fromJSON(file, flatten = TRUE)
   releases <- parsed[["releases"]]
   publishedDate <- ymd_hms(parsed[['publishedDate']])
-  # there are some files that don't include any release (?)
+  #  hay archivos que no incluyen ninguna entrega
   if (!is.null(nrow(releases)) && nrow(releases) > 0) {
       releases$publishedDate <- rep(publishedDate, nrow(releases))
   }
@@ -666,7 +665,7 @@ El desempeño de la paginación de resultados usando *LIMIT* and *OFFSET* se deg
 
 Para probar nuestras funciones de streaming, podemos definir un handler de prueba que solo cuente el número de filas que resultan de nuestra consulta:
 
-```{r message=FALSE, warning=FALSE, echo=FALSE, eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 sanity_checker <- function(data, acc) {
   m <- parLapply(cl, data, function(e) {
     t <- fromJSON(e, flatten = TRUE)
@@ -797,7 +796,7 @@ uruguay_releases_with_month = releases_tb %>% mutate(month = month.name[month(da
 uruguay_releases_with_month[c('ocid', 'month')]
 ```
 
-*Mutate* recibe un tibble como primer parámetro; recibe una expresión de asignación de variable como segundo parámtro, la cual se evalúa fila por fila de modo a producir la nueva columna.
+*Mutate* recibe un tibble como primer parámetro; recibe una expresión de asignación de variable como segundo parámetro, la cual se evalúa fila por fila de modo a producir la nueva columna.
 
 ### Seleccionar
 
@@ -857,18 +856,18 @@ Finalmente, pondremos a prueba lo aprendido graficando datos de OCDS usando **gg
 
 ##  Introducción a la visualización de datos
 
-Cada vez que visualizamos datos, estamos codificando variables usando atributos visuales como tamaño, forma o color. Considera el ejemplo de una variable cuantitativa, la diferencia entre los valores asociados a cada observación pueden representarse de distintas maneras, como se muestra a continuación.
+Cada vez que visualizamos datos, estamos codificando variables usando atributos visuales como tamaño, forma o color. Considera el ejemplo de una variable cuantitativa, la diferencia entre los valores asociados a cada observación pueden representarse de distintas maneras, como se muestra en la figura 2.
 
 
-```{r, echo=FALSE, fig.cap="Potential attribute mapping for a quantitative variable."}
-knitr::include_graphics("visual_cues.jpg")
+```{r, echo=FALSE, fig.cap="Posible mapeo de atributos para una variable cuantitativa."}
+knitr::include_graphics("visual_cues_es.jpeg")
 ```
 
 
-Como el lector habrá notado, muchos mapeos son potencialmente posible, sin embargo no todos ellos son igualmente apropiados. De hecho, los estadísticos William Cleveland and Robert McGill exploraron esta idea mediante experimentos con personas voluntarias buscando determinar que atributos visuales codificaban la información cuantitativa de forma más precisa. Sus resultados se resumen en la siguiente figura:
+Como el lector habrá notado, muchos mapeos son posibles, sin embargo no todos ellos son igualmente apropiados. De hecho, los estadísticos William Cleveland and Robert McGill exploraron esta idea mediante experimentos con personas voluntarias buscando determinar que atributos visuales codificaban la información cuantitativa de forma más precisa. Sus resultados se resumen en la figura 3:
 
-```{r, echo=FALSE, fig.cap="Preattentive attributes sorted by their suitability to encode quantitative variables."}
-knitr::include_graphics("ordered_visual_cues.jpg")
+```{r, echo=FALSE, fig.cap="Atributos preatentivos ordenados de acuerdo a su idoneidad para codificar variables cuantitativas."}
+knitr::include_graphics("ordered_visual_cues_es.jpg")
 ```
 
 Aunque este orden de preferencia es una buena guía para variables cuantitativas, otros tipos de datos se mapean de forma diferente a los atributos visuales. Por ejemplo, mientras el color es una elección pobre para codificar una variable cuantitativa, funciona bien para codificar una variable categórica.
@@ -879,7 +878,7 @@ Diferentes combinaciones de elecciones de codificación resultan en diferentes d
 
 **ggplot2** es el paquete del Tidyverse para visualización de datos. Está basado en la *gramática de los gráficos*, una gramática formal para describir declarativamente la mayoría de los diagramas más comunes utilizados al visualizar datos.
 
-Los diagramas se describen en ggplot usando un conjunto conciso de elementos los cuales pueden combinarse de acuerdo a una estructura básica definda por la gramática de los gráficos. Una versión simplificada de la gramática puede leerse a continuación:
+Los diagramas se describen en ggplot usando un conjunto conciso de elementos los cuales pueden combinarse de acuerdo a una estructura básica definida por la gramática de los gráficos. Una versión simplificada de la gramática puede leerse a continuación:
 
 
 ```{r, eval=FALSE}
@@ -901,7 +900,7 @@ Usemos esta plantilla para graficar el dataset de Iris con un gráfico de disper
 ggplot(data = iris) + geom_point(mapping = aes(x = PetalLength, y = PetalWidth, color = Name))
 ```
 
-Como el lector avisado habrá notado, **ggplot2** favorece la convención frente a la configuración y cualquier diagrama que grafiquemos incluye muchas buenas prácticas por defecto. Por ejemplo, en el diagrama de dispersión anterior obtuvimos etiquetas en los ejes y una leyenda *por defecto* especificando solo los mapeos mediante aesthetics.
+Como el lector habrá notado, **ggplot2** favorece la convención frente a la configuración y cualquier diagrama que grafiquemos incluye muchas buenas prácticas por defecto. Por ejemplo, en el diagrama de dispersión anterior obtuvimos etiquetas en los ejes y una leyenda *por defecto* especificando solo los mapeos mediante aesthetics.
 
 Existen componentes adicionales de la gramática de **ggplot2**, pero para esta breve introducción nuestra plantilla simplificada es suficiente. Para más información acerca de los elementos disponibles, además de una lista exhaustiva de *geoms* y *aesthetics* favor visitar el [sitio oficial](https://ggplot2.tidyverse.org) de la librería.
 
@@ -960,7 +959,9 @@ Sabemos que existe un solapamiento significativo entre las publicaciones de la D
 
 
 ```{r}
-overlap <- subset(contracts_dncp, (dncpContractCode %in% contracts_hacienda[['dncpContractCode']]))['dncpContractCode']
+overlap <- subset(
+  contracts_dncp,
+  (dncpContractCode %in% contracts_hacienda[['dncpContractCode']]))['dncpContractCode']
 dim(overlap)
 ```
 
@@ -993,7 +994,8 @@ Continuando con nuestro análisis, obtengamos un tibble de nuestro dataset de co
 ```{r}
 by_year <- contracts_paraguay %>%
   mutate(signed_year = year(dateSigned)) %>%
-  filter(!is.na(signed_year), !is.na(value.amount), signed_year < 2019, signed_year > 2009, value.currency == 'PYG') %>%
+  filter(!is.na(signed_year), !is.na(value.amount), 
+         signed_year < 2019, signed_year > 2009, value.currency == 'PYG') %>%
   group_by(signed_year) %>%
   summarise(count = n(), amount = sum(value.amount))
 ```
@@ -1004,7 +1006,7 @@ Con el dataset definido previamente, podemos dibujar gráficos de líneas con un
 ggplot(data=by_year, aes(x=signed_year, y=count)) +
   geom_line(color="blue") +
   geom_point() +
-  labs(x = 'Year', y = 'Number of contracts')
+  labs(x = 'Anho', y = '# de contratos')
 ```
 
 
@@ -1012,7 +1014,7 @@ ggplot(data=by_year, aes(x=signed_year, y=count)) +
 ggplot(data=by_year, aes(x=signed_year, y=amount)) +
   geom_line(color='springgreen4') +
   geom_point() +
-  labs(x = 'Year', y = 'Total Amount (PYG)')
+  labs(x = 'Anho', y = 'Monto total (PYG)')
 ```
 
 Ya dibujamos unos cuantos gráficos de líneas, ¿qué hay de las barras? Grafiquemos el número de contratos por comprador para un año determinado (2017). El lector debería empezar a notar un patrón: empezamos por dejar nuestros datos en el formato correcto usando verbos **dplyr** y solo entonces procedemos a la visualización. Los gráficos de barras requieren un paso adicional, al menos si queremos darles la típica apariencia de ordenamiento por longitud: los nombres de compradores son arreglos de caracteres y por tanto se ordenan lexicográficamente por defecto, necesitamos redefinir el orden de las columnas usando el tipo de datos factor (usado para variables categóricas) y configurar un orden personalizado usando la función  `order`.
@@ -1027,13 +1029,15 @@ count_by_buyer <- contracts_paraguay %>%
   arrange(desc(ccount)) %>%
   head(5)
 
-count_by_buyer$buyer.name <- factor(count_by_buyer$buyer.name, levels = count_by_buyer$buyer.name[order(count_by_buyer$ccount)])
+count_by_buyer$buyer.name <- factor(
+  count_by_buyer$buyer.name,
+  levels = count_by_buyer$buyer.name[order(count_by_buyer$ccount)])
 
 
 ggplot(data=count_by_buyer, aes(x=buyer.name, y=ccount)) +
   geom_bar(stat="identity", fill="steelblue") +
   coord_flip() +
-  labs(y = 'Number of contracts', x = 'Buyer')
+  labs(y = '# de contratos', x = 'Comprador')
 ```
 
 Podemos seguir pasos similares para dibujar el gráfico de barras considerando el monto total por comprador:
@@ -1048,19 +1052,21 @@ amount_by_buyer <- contracts_paraguay %>%
   head(5)
 
 top_buyers = amount_by_buyer$buyer.name
-amount_by_buyer$buyer.name <- factor(amount_by_buyer$buyer.name, levels = amount_by_buyer$buyer.name[order(amount_by_buyer$amount)])
+amount_by_buyer$buyer.name <- factor(
+  amount_by_buyer$buyer.name,
+  levels = amount_by_buyer$buyer.name[order(amount_by_buyer$amount)])
 
 
 ggplot(data=amount_by_buyer, aes(x=buyer.name, y=amount)) +
   geom_bar(stat="identity", fill="springgreen4") +
   coord_flip() +
-  labs(y = 'Total Amount (PYG)', x = 'Buyer')
+  labs(y = 'Monto total (PYG)', x = 'Comprador')
 ```
 
-Los gráficos que dibujamos hasta el momento son útiles para mostrar sumarizaciones agrupadas, pero no nos dan una pista acerca de la distribución subyacente de la variable numérica. Los gráficos de caja sirven para visualizar distribuciones agrupadas por una variable categórica, junto a unas cuantas estadísticas útiles; la figura a continuación, tomada de un [curso de estadísticas de la BBC](http://www.bbc.co.uk/schools/gcsebitesize/maths/statistics/representingdata3hirev6.shtml) muestra como interpretar cada componente de un diagrama de caja.
+Los gráficos que dibujamos hasta el momento son útiles para mostrar sumarizaciones agrupadas, pero no nos dan una pista acerca de la distribución subyacente de la variable numérica. Los gráficos de caja sirven para visualizar distribuciones agrupadas por una variable categórica, junto a unas cuantas estadísticas útiles; la figura 4, tomada de un [curso de estadísticas de la BBC](http://www.bbc.co.uk/schools/gcsebitesize/maths/statistics/representingdata3hirev6.shtml) muestra como interpretar cada componente de un diagrama de caja.
 
 ```{r, echo=FALSE, fig.cap="Elements of a box plot."}
-knitr::include_graphics("boxplot.jpg")
+knitr::include_graphics("boxplot_es.jpg")
 ```
 
 La belleza de **ggplot2** yace en su naturaleza declarativa. Examina el siguiente fragmento de código, que permite graficar un diagrama de caja: la única diferencia con el ejemplo anterior es el uso de un geom diferente  (`geom_boxplot`).
@@ -1077,7 +1083,7 @@ contracts_top5_buyers$buyer.name <- factor(contracts_top5_buyers$buyer.name)
 
 ggplot(data=contracts_top5_buyers, aes(x=buyer.name, y=value.amount, color=buyer.name)) +
   geom_boxplot(outlier.colour="black", outlier.shape=NA, notch=FALSE) +
-  labs(y = 'Total Amount (PYG)', x = 'Buyer') +
+  labs(y = 'Monto total (PYG)', x = 'Comprador') +
   theme(axis.text.y=element_blank()) +
   coord_flip()
 ```
@@ -1095,12 +1101,12 @@ selected_contracts <- contracts_paraguay %>%
 
 ggplot(data=selected_contracts, aes(value.amount)) +
   geom_histogram(fill='steelblue', col='black') +
-  labs(x = 'Amount (PYG)', y = 'Number of Contracts')
+  labs(x = 'Monto (PYG)', y = '# de contratos')
 ```
 
 En los últimos dos ejemplos hemos restringido nuestro análisis a un cierto extremo de la distribución. Esto no es poco frecuente, en particular en presencia de valores extremos, ya que la diferencia de magnitudes dificulta obtener conclusiones de un gráfico general. Es fácil cambiar la parte de la distribución que examinamos cambiando el parámetro de la función `tail` o usando su función complementaria `head`. Si estás corriendo este notebook en modo interacitvo puedes tomarte unos minutos para hacerlo e intentar encontar patrones interesantes en los datos.
 
-Como nuestro último diagrama dibujaremos un histograma para los contratos mexicanos, los cuales se leerán de una base de datos Postgres usando la función de streaming implementada en secciones anteriores. Esto se logra definiendo un callback que extraing los montos de los contratos para cada contrato de cada *compiledRelease* publicado. Resumiendo, el callback que definimos en el siguiente fragmento de código:
+Como nuestro último diagrama dibujaremos un histograma para los contratos mexicanos, los cuales se leerán de una base de datos Postgres usando la función de streaming implementada en secciones anteriores. Esto se logra definiendo un callback que extraiga los montos de los contratos para cada contrato de cada *compiledRelease* publicado. Resumiendo, el callback que definimos en el siguiente fragmento de código:
 
 * Parsea la entrega usando funciones de **jsonlite**.
 * Dada una entrega, extrae los contratos de la misma si los hay (verificando con la función `dim`). 
@@ -1148,7 +1154,7 @@ contracts_mx <- contracts %>%
 
 ggplot(data=contracts_mx, aes(valueWithTax.amount)) +
   geom_histogram(fill='forestgreen', col='black') +
-  labs(x = 'Amount (MXN)', y = 'Number of Contracts')
+  labs(x = 'Monto (MXN)', y = '# de contratos')
 
 ```
 
@@ -1163,7 +1169,7 @@ Como terminamos con la mayor parte del procesamiento pesado, no debemos olvidar 
 
 En las páginas de esta guía hemos presentado al lector el estándar de datos Open Contracting y lenguaje de programación R; además, hemos mostrado como usar R, y más específicamente las herramientas disponibles como parte del **Tidyverse**, para llevar a cabo la lectura, limpieza, análisis y visualización de datos.
 
-Aspectos específicos del foramto de los datos y el volumen de los datasets disponibles han sido razón suficiente para introducir conceptos más avanzados como el procesamiento paralelo. Habiendo dicho esto, los publicadores pueden mejorar la experiencia de los analistas de datos:
+Aspectos específicos del formato de los datos y el volumen de los datasets disponibles han sido razón suficiente para introducir conceptos más avanzados como el procesamiento paralelo. Habiendo dicho esto, los publicadores pueden mejorar la experiencia de los analistas de datos:
 
 
 * Proveyendo un backup de sus datasets en formato **ndjson**, lo cual permitiría la utilización de las funciones  *stream_in* y *stream_out* de **jsonlite**.

@@ -46,7 +46,7 @@ The rest of this document is organized as follows:
   
   * Section 2 deals with data acquisition and cleaning, focusing on reading and processing JSON files with R.
   
-  * Section 3 presents the [Tidiverse](https://www.tidyverse.org), a collection of R packages designed to perform common data science tasks. 
+  * Section 3 presents the [Tidyverse](https://www.tidyverse.org), a collection of R packages designed to perform common data science tasks. 
   
   * Finally, section 4 introduces [ggplot2](https://ggplot2.tidyverse.org) and the grammar of graphics it is based on, to draw several plots that describe our previously acquired datasets.
 
@@ -81,7 +81,7 @@ The standard defines a contracting process as:
 > All the planning, tendering information, awards, contracts and contract implementation information related to a single initiation process.
 
 
-The standard covers all the stages of a contracting process, even though some processes might not involve all possible steps. The stages of the procurement process, with example objects that might be associated to each one, are depicted in the figure below.
+The standard covers all the stages of a contracting process, even though some processes might not involve all possible steps. The stages of the procurement process, with example objects that might be associated to each one, are depicted in figure 1.
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(cache = TRUE, warning = FALSE, 
@@ -346,11 +346,11 @@ df$name # Columns can also be accessed directly from the data frame.
 
 Another type of data table available are Tibbles. Tibbles belong to the Tidyverse, a set of libraries to perform data analysis in R following best practices that will be discussed at length in another section. For now, just think of Tibbles as data frames with some quirkyness fixed. As an example, printing a data frame displays all of its rows, which may be problematic for large datasets; printing a tibble displays only the first 10 rows by default. 
 
-Data frames can be converted to tibbles and viceversa; the latter can be useful when dealing with older libraries that are not Tidyverse-ready. The author advises the use of tibbles and favors (as many users in the community) leveraging Tidiverse features and adhering to its guidelines as closely as possible.
+Data frames can be converted to tibbles and viceversa; the latter can be useful when dealing with older libraries that are not Tidyverse-ready. The author advises the use of tibbles and favors (as many users in the community) leveraging Tidyverse features and adhering to its guidelines as closely as possible.
 ```{r message=FALSE, warning=FALSE}
 # Packrat should have installed dependencies for you, 
 # you can do it manually by running the command below
-# install.packages("tidiverse")
+# install.packages("tidyverse")
 library(tidyverse) # Side note: this is how you import a library in R
 ```
 
@@ -643,7 +643,7 @@ which leverages the fact that we have an index defined for the primary key. For 
 
 Now let's take our streaming functions for a ride. To test them out, we can define a dummy handler to count the number of rows of data that result from our query.
 
-```{r message=FALSE, warning=FALSE, echo=FALSE, eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 sanity_checker <- function(data, acc) {
   m <- parLapply(cl, data, function(e) {
     t <- fromJSON(e, flatten = TRUE)
@@ -831,13 +831,13 @@ Finally, we will test what we just learned by plotting OCDS data using **ggplot2
 
 ##  A data visualization primer
 
-Whenever we visualize data, we are encoding variables using visual attributes such as size, shape or color. Consider for example a quantitative variable, differences among values associated to each observation can be represented in several ways, as displayed below:
+Whenever we visualize data, we are encoding variables using visual attributes such as size, shape or color. Consider for example a quantitative variable, differences among values associated to each observation can be represented in several ways, as displayed in figure 2:
 
 ```{r, echo=FALSE, fig.cap="Potential attribute mapping for a quantitative variable."}
 knitr::include_graphics("visual_cues.jpg")
 ```
 
-As the reader might have noticed, many mappings are possible, but not all of them seem equally appropriate. In fact, statisticians William Cleveland and Robert McGill explored this intuition further by running some experiments with human volunteers to determine which visual attributes encoded quantitative information more accurately. Their findings are summarized in the figure below:
+As the reader might have noticed, many mappings are possible, but not all of them seem equally appropriate. In fact, statisticians William Cleveland and Robert McGill explored this intuition further by running some experiments with human volunteers to determine which visual attributes encoded quantitative information more accurately. Their findings are summarized in figure 3:
 
 ```{r, echo=FALSE, fig.cap="Preattentive attributes sorted by their suitability to encode quantitative variables."}
 knitr::include_graphics("ordered_visual_cues.jpg")
@@ -929,7 +929,9 @@ We know there is significant overlap between the publications of DNCP and the Mi
 
 
 ```{r}
-overlap <- subset(contracts_dncp, (dncpContractCode %in% contracts_hacienda[['dncpContractCode']]))['dncpContractCode']
+overlap <- subset(
+  contracts_dncp,
+  (dncpContractCode %in% contracts_hacienda[['dncpContractCode']]))['dncpContractCode']
 dim(overlap)
 ```
 
@@ -960,7 +962,8 @@ To continue with our analysis, lets get a tibble of our contract dataset grouped
 ```{r}
 by_year <- contracts_paraguay %>%
   mutate(signed_year = year(dateSigned)) %>%
-  filter(!is.na(signed_year), !is.na(value.amount), signed_year < 2019, signed_year > 2009, value.currency == 'PYG') %>%
+  filter(!is.na(signed_year), !is.na(value.amount),
+         signed_year < 2019, signed_year > 2009, value.currency == 'PYG') %>%
   group_by(signed_year) %>%
   summarise(count = n(), amount = sum(value.amount))
 ```
@@ -993,7 +996,9 @@ count_by_buyer <- contracts_paraguay %>%
   arrange(desc(ccount)) %>%
   head(5)
 
-count_by_buyer$buyer.name <- factor(count_by_buyer$buyer.name, levels = count_by_buyer$buyer.name[order(count_by_buyer$ccount)])
+count_by_buyer$buyer.name <- factor(
+  count_by_buyer$buyer.name,
+  levels = count_by_buyer$buyer.name[order(count_by_buyer$ccount)])
 
 
 ggplot(data=count_by_buyer, aes(x=buyer.name, y=ccount)) +
@@ -1015,7 +1020,9 @@ amount_by_buyer <- contracts_paraguay %>%
   head(5)
 
 top_buyers = amount_by_buyer$buyer.name
-amount_by_buyer$buyer.name <- factor(amount_by_buyer$buyer.name, levels = amount_by_buyer$buyer.name[order(amount_by_buyer$amount)])
+amount_by_buyer$buyer.name <- factor(
+  amount_by_buyer$buyer.name,
+  levels = amount_by_buyer$buyer.name[order(amount_by_buyer$amount)])
 
 
 ggplot(data=amount_by_buyer, aes(x=buyer.name, y=amount)) +
@@ -1024,7 +1031,7 @@ ggplot(data=amount_by_buyer, aes(x=buyer.name, y=amount)) +
   labs(y = 'Total Amount (PYG)', x = 'Buyer')
 ```
 
-The plots we have drawed so far are useful to show grouped summaries, but they do not give us any clue about the underlying distribution of the plotted numerical variable. Box plots let us visualize distributions grouped by a categorical variable, together with some very useful statistics; the figure below (taken from  [a stats course from the BBC](http://www.bbc.co.uk/schools/gcsebitesize/maths/statistics/representingdata3hirev6.shtml) shows how to interpret each component of a box plot:
+The plots we have drawed so far are useful to show grouped summaries, but they do not give us any clue about the underlying distribution of the plotted numerical variable. Box plots let us visualize distributions grouped by a categorical variable, together with some very useful statistics; figure 4 (taken from  [a stats course from the BBC](http://www.bbc.co.uk/schools/gcsebitesize/maths/statistics/representingdata3hirev6.shtml) shows how to interpret each component of a box plot:
 
 ```{r, echo=FALSE, fig.cap="Elements of a box plot."}
 knitr::include_graphics("boxplot.jpg")
